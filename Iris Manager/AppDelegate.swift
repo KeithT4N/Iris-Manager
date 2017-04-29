@@ -35,6 +35,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        
+        
+        //TODO: Show when not logged in
+        if let navigationVC = self.window?.rootViewController as? UINavigationController  {
+            if let visibleController = navigationVC.visibleViewController {
+                let storyboard = UIStoryboard.init(name: "Main", bundle: nil)
+                let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInVC") as! SignInVC
+                signInVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+                visibleController.present(signInVC, animated: true, completion: nil)
+                //Add the code here to present signupviewcontroller as form sheet
+            }
+            
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

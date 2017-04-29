@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>Alamofire.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>Moya-ObjectMapper.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Moya.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>ObjectMapper.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>Pods-Iris Manager.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>Realm.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>RealmSwift.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
+		<key>Result.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false />
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>1215771836B84E9F9899950098D2FF80</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>36F2B34CCB079FDB668CE139E90119CD</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>52ACA0236F086E72B74F0A090A743D41</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>5EB2887324DDCE5B65A54465D5525DD8</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>88E9EC28B8B46C3631E6B242B50F4442</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>8EA2C86A5628B6B715FC795050613D1F</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>B27F1F7B862582A90168D876BFA178C0</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+		<key>CF9F83025EEE1E89490800018F391A28</key>
+		<dict>
+			<key>primary</key>
+			<true />
+		</dict>
+	</dict>
+</dict>
+</plist>
