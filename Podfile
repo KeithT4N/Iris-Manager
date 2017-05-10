@@ -9,4 +9,8 @@ target 'Iris Manager' do
   pod 'Moya'
   pod 'Moya-ObjectMapper'
   pod 'RealmSwift'
+  pod "ObjectMapper+Realm"
+  pod 'SwiftMessages'
+  pod 'SwiftKeychainWrapper'
+  pod 'IQKeyboardManagerSwift'
 end

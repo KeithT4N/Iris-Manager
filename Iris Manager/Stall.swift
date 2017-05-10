@@ -6,20 +6,33 @@
 //  Copyright © 2017 Axis. All rights reserved.
 //
 
-import Foundation
 import ObjectMapper
+import RealmSwift
 
-struct Stall: Mappable, Updatable {
-    var id: Int!
-    var name: String!
-    var products: [Product]!
-    var lastUpdated: Date!
-    
-    init? (map: Map) {}
-    
-    mutating func mapping(map: Map) {
+class Stall: Object, Mappable, Updatable {
+    dynamic var id:          Int    = 0
+    dynamic var name:        String = ""
+    dynamic var lastUpdated: Date   = Date()
+
+    let products = List<Product>()
+
+    typealias SkeletonType = StallUpdateSkeleton
+
+    override static func primaryKey() -> String? {
+        return "id"
+    }
+
+    required convenience init? (map: Map) {
+        self.init()
+    }
+
+    func mapping(map: Map) {
         id <- map["id"]
         name <- map["name"]
-        lastUpdated <- map["last_updated"]
+        lastUpdated = try! map.value("last_updated", using: CustomDateFormatTransform(formatString: "yyyy-MM-dd'T'HH:mm:ss.SSSSZ"))
+    }
+
+    func toSkeleton() -> SkeletonType {
+        return StallUpdateSkeleton(id: self.id, lastUpdated: self.lastUpdated)
     }
 }

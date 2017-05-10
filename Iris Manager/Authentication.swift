@@ -2,68 +2,51 @@
 //  Authentication.swift
 //  Iris Manager
 //
-//  Created by Keith Tan on 4/25/17.
+//  Created by Keith Tan on 5/10/17.
 //  Copyright © 2017 Axis. All rights reserved.
 //
 
-import Moya
+import SwiftKeychainWrapper
 
-enum Authentication {
-    case signIn(username: String, password: String)
-    case isSignedIn
-    case signOut
-}
+class Authentication {
+    
+    static let shared = Authentication()
+    
+    fileprivate init() {}
 
-extension Authentication: TargetType {
-    var baseURL: URL {
-        return URL(string: BaseURL.shared.url)!
+    func setKeychainCredentials(username: String, password: String) {
+        KeychainWrapper.standard.set(username, forKey: "username")
+        KeychainWrapper.standard.set(password, forKey: "password")
+    }
+    
+    func removeKeychainCredentials() {
+        KeychainWrapper.standard.removeObject(forKey: "username")
+        KeychainWrapper.standard.removeObject(forKey: "password")
     }
 
-    var path: String {
-        switch self {
-            case .signIn(_, _):
-                return "/signin/"
-            case .isSignedIn:
-                return "/logincheck/"
-            case .signOut:
-                return "/signout/"
+    func showSignInSheet() {
+        let appDelegate = UIKit.UIApplication.shared.delegate!
+
+        if let tabBarController = appDelegate.window??.rootViewController as? UITabBarController {
+            let storyboard = UIStoryboard.init(name: "Main", bundle: nil)
+            let signInVC   = storyboard.instantiateViewController(withIdentifier: "SignInVC") as! SignInVC
+            signInVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+            tabBarController.present(signInVC, animated: true, completion: nil)
         }
     }
 
-    var method: Moya.Method {
-        switch self {
-            case .signIn:
-                return .post
-            case .isSignedIn, .signOut:
-                return .get
+    func getBase64() -> String? {
+        guard let username = KeychainWrapper.standard.string(forKey: "username"),
+              let password = KeychainWrapper.standard.string(forKey: "password") else {
+            return nil
         }
+        
+        let rawCredentials = "\(username):\(password)"
+        let credentialsData = rawCredentials.data(using: .utf8)
+        return credentialsData?.base64EncodedString()
     }
 
-    var parameters: [String : Any]? {
-        switch self {
-            case .signIn(let username, let password):
-                return [ "username" : username, "password" : password ]
-            case .isSignedIn, .signOut:
-                return nil
-        }
+    func isSignedIn() -> Bool {
+        return KeychainWrapper.standard.string(forKey: "username") != nil
     }
-
-    var parameterEncoding: ParameterEncoding {
-        switch self {
-            case .signIn:
-                return JSONEncoding.default
-            case .isSignedIn,
-                 .signOut:
-                return URLEncoding.default
-        }
-    }
-
-    var sampleData: Data {
-        return Data()
-    }
-
-    var task: Task {
-        return .request
-    }
-
 }

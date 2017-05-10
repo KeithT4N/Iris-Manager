@@ -7,7 +7,11 @@
 //
 
 class BaseURL {
-    let url = "https://8ec74063.ngrok.io/api"
+    let domain = "40128077.ngrok.io"
+    var completeAddress: String {
+        return "https://" + domain + "/api"
+    }
+    
     public static var shared = BaseURL()
     private init() {}
 }

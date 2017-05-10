@@ -8,30 +8,38 @@
 
 /* Begin PBXBuildFile section */
 		097D3C5AF068B859D752D25C /* Pods_Iris_Manager.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4DE125A6E3C0A7D656F4993 /* Pods_Iris_Manager.framework */; };
-		537566F11EB475CF00F5467F /* StallRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537566F01EB475CF00F5467F /* StallRetriever.swift */; };
+		533093691EC2B7B000022A54 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 533093681EC2B7B000022A54 /* Authentication.swift */; };
+		537566F11EB475CF00F5467F /* IrisAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537566F01EB475CF00F5467F /* IrisAPI.swift */; };
+		537566F51EB49D3300F5467F /* StallUpdateSkeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537566F41EB49D3300F5467F /* StallUpdateSkeleton.swift */; };
+		537566F81EB49D4100F5467F /* ProductUpdateSkeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537566F71EB49D4100F5467F /* ProductUpdateSkeleton.swift */; };
+		53A74BC11EB99DE800D497DB /* StallListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53A74BC01EB99DE800D497DB /* StallListViewController.swift */; };
 		53B846DF1EB3494200C1227C /* Stall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B846DE1EB3494200C1227C /* Stall.swift */; };
 		53B846E21EB3498D00C1227C /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B846E11EB3498D00C1227C /* Product.swift */; };
 		53B846E41EB349D300C1227C /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B846E31EB349D300C1227C /* Updatable.swift */; };
-		53B846E61EB34D9E00C1227C /* ProductRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B846E51EB34D9E00C1227C /* ProductRetriever.swift */; };
 		53B846E81EB34E9B00C1227C /* BaseURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B846E71EB34E9B00C1227C /* BaseURL.swift */; };
+		53B8DDD81EC1E403007894A8 /* IrisProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B8DDD71EC1E403007894A8 /* IrisProvider.swift */; };
 		53BB0AC61EAC4A3800870A95 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BB0AC51EAC4A3800870A95 /* AppDelegate.swift */; };
 		53BB0AC81EAC4A3800870A95 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BB0AC71EAC4A3800870A95 /* ViewController.swift */; };
 		53BB0ACB1EAC4A3800870A95 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53BB0AC91EAC4A3800870A95 /* Main.storyboard */; };
 		53BB0ACD1EAC4A3800870A95 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53BB0ACC1EAC4A3800870A95 /* Assets.xcassets */; };
 		53BB0AD01EAC4A3800870A95 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53BB0ACE1EAC4A3800870A95 /* LaunchScreen.storyboard */; };
 		53C3BA591EAC8E6800B15AA0 /* SignInVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3BA581EAC8E6800B15AA0 /* SignInVC.swift */; };
-		53ED51B11EAEDEAD001AE99C /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53ED51B01EAEDEAC001AE99C /* Authentication.swift */; };
-		53ED51B41EAEDF39001AE99C /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53ED51B31EAEDF39001AE99C /* Services.swift */; };
+		613553481F830F409E9ACC69 /* APIRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6135505F67541F58ED26711C /* APIRequest.swift */; };
+		613554B062F6F34D7C0CD623 /* StallEntityRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6135575F0E690067B89807F7 /* StallEntityRetriever.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		30065D895E608E436FD93A61 /* Pods-Iris Manager.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Iris Manager.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Iris Manager/Pods-Iris Manager.debug.xcconfig"; sourceTree = "<group>"; };
-		537566F01EB475CF00F5467F /* StallRetriever.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StallRetriever.swift; sourceTree = "<group>"; };
+		533093681EC2B7B000022A54 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		537566F01EB475CF00F5467F /* IrisAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IrisAPI.swift; sourceTree = "<group>"; };
+		537566F41EB49D3300F5467F /* StallUpdateSkeleton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StallUpdateSkeleton.swift; sourceTree = "<group>"; };
+		537566F71EB49D4100F5467F /* ProductUpdateSkeleton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProductUpdateSkeleton.swift; sourceTree = "<group>"; };
+		53A74BC01EB99DE800D497DB /* StallListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StallListViewController.swift; sourceTree = "<group>"; };
 		53B846DE1EB3494200C1227C /* Stall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stall.swift; sourceTree = "<group>"; };
 		53B846E11EB3498D00C1227C /* Product.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
 		53B846E31EB349D300C1227C /* Updatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updatable.swift; sourceTree = "<group>"; };
-		53B846E51EB34D9E00C1227C /* ProductRetriever.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProductRetriever.swift; sourceTree = "<group>"; };
 		53B846E71EB34E9B00C1227C /* BaseURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseURL.swift; sourceTree = "<group>"; };
+		53B8DDD71EC1E403007894A8 /* IrisProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IrisProvider.swift; sourceTree = "<group>"; };
 		53BB0AC21EAC4A3800870A95 /* Iris Manager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Iris Manager.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		53BB0AC51EAC4A3800870A95 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		53BB0AC71EAC4A3800870A95 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -40,8 +48,8 @@
 		53BB0ACF1EAC4A3800870A95 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53BB0AD11EAC4A3800870A95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		53C3BA581EAC8E6800B15AA0 /* SignInVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignInVC.swift; sourceTree = "<group>"; };
-		53ED51B01EAEDEAC001AE99C /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
-		53ED51B31EAEDF39001AE99C /* Services.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
+		6135505F67541F58ED26711C /* APIRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APIRequest.swift; sourceTree = "<group>"; };
+		6135575F0E690067B89807F7 /* StallEntityRetriever.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StallEntityRetriever.swift; sourceTree = "<group>"; };
 		D4DE125A6E3C0A7D656F4993 /* Pods_Iris_Manager.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Iris_Manager.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E39D0FECB8F38255A555F937 /* Pods-Iris Manager.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Iris Manager.release.xcconfig"; path = "Pods/Target Support Files/Pods-Iris Manager/Pods-Iris Manager.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -67,12 +75,48 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		537566F21EB499D800F5467F /* EntityRetrievers */ = {
+			isa = PBXGroup;
+			children = (
+				6135575F0E690067B89807F7 /* StallEntityRetriever.swift */,
+			);
+			name = EntityRetrievers;
+			sourceTree = "<group>";
+		};
+		537566F31EB49D2800F5467F /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				53B846E31EB349D300C1227C /* Updatable.swift */,
+			);
+			name = Protocols;
+			sourceTree = "<group>";
+		};
+		537566F61EB49D3500F5467F /* Update Skeletons */ = {
+			isa = PBXGroup;
+			children = (
+				537566F41EB49D3300F5467F /* StallUpdateSkeleton.swift */,
+				537566F71EB49D4100F5467F /* ProductUpdateSkeleton.swift */,
+			);
+			name = "Update Skeletons";
+			sourceTree = "<group>";
+		};
+		53A74BBF1EB99DD900D497DB /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				53C3BA581EAC8E6800B15AA0 /* SignInVC.swift */,
+				53BB0AC71EAC4A3800870A95 /* ViewController.swift */,
+				53A74BC01EB99DE800D497DB /* StallListViewController.swift */,
+			);
+			name = "View Controllers";
+			sourceTree = "<group>";
+		};
 		53B846E01EB3494700C1227C /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				53B846E11EB3498D00C1227C /* Product.swift */,
-				53B846E31EB349D300C1227C /* Updatable.swift */,
+				537566F31EB49D2800F5467F /* Protocols */,
 				53B846DE1EB3494200C1227C /* Stall.swift */,
+				537566F61EB49D3500F5467F /* Update Skeletons */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -112,9 +156,9 @@
 			isa = PBXGroup;
 			children = (
 				53BB0ACE1EAC4A3800870A95 /* LaunchScreen.storyboard */,
-				53C3BA581EAC8E6800B15AA0 /* SignInVC.swift */,
-				53BB0AC71EAC4A3800870A95 /* ViewController.swift */,
+				53A74BBF1EB99DD900D497DB /* View Controllers */,
 				53ED51B21EAEDEB0001AE99C /* Network */,
+				537566F21EB499D800F5467F /* EntityRetrievers */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -122,11 +166,11 @@
 		53ED51B21EAEDEB0001AE99C /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				53ED51B01EAEDEAC001AE99C /* Authentication.swift */,
-				53ED51B31EAEDF39001AE99C /* Services.swift */,
-				53B846E51EB34D9E00C1227C /* ProductRetriever.swift */,
 				53B846E71EB34E9B00C1227C /* BaseURL.swift */,
-				537566F01EB475CF00F5467F /* StallRetriever.swift */,
+				537566F01EB475CF00F5467F /* IrisAPI.swift */,
+				53B8DDD71EC1E403007894A8 /* IrisProvider.swift */,
+				533093681EC2B7B000022A54 /* Authentication.swift */,
+				6135505F67541F58ED26711C /* APIRequest.swift */,
 			);
 			name = Network;
 			sourceTree = "<group>";
@@ -263,17 +307,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53ED51B41EAEDF39001AE99C /* Services.swift in Sources */,
 				53BB0AC81EAC4A3800870A95 /* ViewController.swift in Sources */,
 				53B846E81EB34E9B00C1227C /* BaseURL.swift in Sources */,
-				537566F11EB475CF00F5467F /* StallRetriever.swift in Sources */,
+				537566F81EB49D4100F5467F /* ProductUpdateSkeleton.swift in Sources */,
+				537566F51EB49D3300F5467F /* StallUpdateSkeleton.swift in Sources */,
+				537566F11EB475CF00F5467F /* IrisAPI.swift in Sources */,
+				53A74BC11EB99DE800D497DB /* StallListViewController.swift in Sources */,
 				53B846DF1EB3494200C1227C /* Stall.swift in Sources */,
+				533093691EC2B7B000022A54 /* Authentication.swift in Sources */,
 				53BB0AC61EAC4A3800870A95 /* AppDelegate.swift in Sources */,
-				53B846E61EB34D9E00C1227C /* ProductRetriever.swift in Sources */,
 				53B846E41EB349D300C1227C /* Updatable.swift in Sources */,
 				53C3BA591EAC8E6800B15AA0 /* SignInVC.swift in Sources */,
-				53ED51B11EAEDEAD001AE99C /* Authentication.swift in Sources */,
+				53B8DDD81EC1E403007894A8 /* IrisProvider.swift in Sources */,
 				53B846E21EB3498D00C1227C /* Product.swift in Sources */,
+				613554B062F6F34D7C0CD623 /* StallEntityRetriever.swift in Sources */,
+				613553481F830F409E9ACC69 /* APIRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -9,8 +9,12 @@
 import Foundation
 
 protocol Updatable {
-    var lastUpdated: Date! { get set }
+
+    associatedtype SkeletonType
+
+    var lastUpdated: Date { get set }
     func isUpdated(latest: Date) -> Bool
+    func toSkeleton() -> SkeletonType
 }
 
 extension Updatable {
