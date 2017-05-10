@@ -155,7 +155,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="XOh-14-H1o">
-                                <rect key="frame" x="95.5" y="147" width="350" height="326"/>
+                                <rect key="frame" x="95.5" y="147.5" width="350" height="326"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="7" translatesAutoresizingMaskIntoConstraints="NO" id="0fp-Nu-pDh">
                                         <rect key="frame" x="69.5" y="0.0" width="211.5" height="75.5"/>
@@ -174,12 +174,20 @@
                                             </label>
                                         </subviews>
                                     </stackView>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="The username or password is incorrect." textAlignment="center" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SXL-Yv-12L">
-                                        <rect key="frame" x="17" y="105.5" width="316" height="20.5"/>
-                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
-                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
+                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="16U-bK-qOd">
+                                        <rect key="frame" x="108" y="105.5" width="134.5" height="20.5"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" horizontalCompressionResistancePriority="1000" text="Signing in..." textAlignment="center" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SXL-Yv-12L">
+                                                <rect key="frame" x="0.0" y="0.0" width="94.5" height="20.5"/>
+                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
+                                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="aOi-Il-DrP">
+                                                <rect key="frame" x="114.5" y="0.5" width="20" height="20"/>
+                                            </activityIndicatorView>
+                                        </subviews>
+                                    </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="F27-Fb-tCL">
                                         <rect key="frame" x="0.0" y="156" width="350" height="170"/>
                                         <subviews>
@@ -244,6 +252,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="aOi-Il-DrP" id="axD-v5-k5R"/>
                         <outlet property="errorLabel" destination="SXL-Yv-12L" id="NlV-1x-sTW"/>
                         <outlet property="passwordField" destination="Ezw-xV-3hB" id="n2p-xm-Dzy"/>
                         <outlet property="signInButton" destination="d6q-zd-E6F" id="GkQ-jl-Zax"/>

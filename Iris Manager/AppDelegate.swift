@@ -47,7 +47,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if !manager.isReachable {
             self.onInternetDisconnect()
         }
-        
+
     }
 
     func onInternetConnect() {
@@ -91,15 +91,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SwiftMessages.show(config: initialMessageConfig,
                            view: initialMessageView)
     }
-    
-    
+
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]?) -> Bool {
         // Override point for customization after application launch.
         setUpReachabilityManager()
         IQKeyboardManager.sharedManager().enable = true
-        StallEntityRetriever.shared.updateLocalDatabase()
         return true
     }
 
@@ -119,21 +117,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-
-        Authentication.shared.showSignInSheet()
-
-
-        if !Authentication.shared.isSignedIn() {
+        
+        if Authentication.shared.isSignedIn() {
+            print("Is signed in")
+            StallEntityRetriever.shared.updateLocalDatabase()
+            ProductEntityRetriever.shared.updateLocalDatabase()
+        } else {
             print("Not signed in")
             Authentication.shared.showSignInSheet()
         }
 
-        print("Is signed in")
-        
+
     }
-
-
-
 
 
     func applicationWillTerminate(_ application: UIApplication) {

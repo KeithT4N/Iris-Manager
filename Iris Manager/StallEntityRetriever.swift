@@ -12,8 +12,6 @@ class StallEntityRetriever {
 
     static let shared = StallEntityRetriever()
     let realm = try! Realm()
-
-
     fileprivate init() {
     }
 
@@ -31,7 +29,6 @@ class StallEntityRetriever {
     }
 
     fileprivate func fetchNewUpdates(newUpdateSkeletons: [StallUpdateSkeleton]) {
-
         let currentStalls = realm.objects(Stall.self)
 
         var stallsToUpdate: [Int] = []
@@ -64,14 +61,12 @@ class StallEntityRetriever {
 
     fileprivate func getStall(id: Int, isUpdate: Bool) {
         request(for: .getStall(id: id)) { response in
-
             do {
                 let stall = try response.mapObject(Stall.self)
 
                 try! self.realm.write {
                     self.realm.add(stall, update: isUpdate)
                 }
-
             } catch {
                 print("An error occurred mapping json to Stall Object")
                 print(error.localizedDescription)
@@ -80,5 +75,4 @@ class StallEntityRetriever {
             }
         }
     }
-
 }

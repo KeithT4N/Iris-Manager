@@ -26,6 +26,7 @@
 		53C3BA591EAC8E6800B15AA0 /* SignInVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3BA581EAC8E6800B15AA0 /* SignInVC.swift */; };
 		613553481F830F409E9ACC69 /* APIRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6135505F67541F58ED26711C /* APIRequest.swift */; };
 		613554B062F6F34D7C0CD623 /* StallEntityRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6135575F0E690067B89807F7 /* StallEntityRetriever.swift */; };
+		613559F1236E99A992E5C724 /* ProductEntityRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61355257FF0179201AA444E6 /* ProductEntityRetriever.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		53BB0AD11EAC4A3800870A95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		53C3BA581EAC8E6800B15AA0 /* SignInVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignInVC.swift; sourceTree = "<group>"; };
 		6135505F67541F58ED26711C /* APIRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APIRequest.swift; sourceTree = "<group>"; };
+		61355257FF0179201AA444E6 /* ProductEntityRetriever.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProductEntityRetriever.swift; sourceTree = "<group>"; };
 		6135575F0E690067B89807F7 /* StallEntityRetriever.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StallEntityRetriever.swift; sourceTree = "<group>"; };
 		D4DE125A6E3C0A7D656F4993 /* Pods_Iris_Manager.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Iris_Manager.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E39D0FECB8F38255A555F937 /* Pods-Iris Manager.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Iris Manager.release.xcconfig"; path = "Pods/Target Support Files/Pods-Iris Manager/Pods-Iris Manager.release.xcconfig"; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 			isa = PBXGroup;
 			children = (
 				6135575F0E690067B89807F7 /* StallEntityRetriever.swift */,
+				61355257FF0179201AA444E6 /* ProductEntityRetriever.swift */,
 			);
 			name = EntityRetrievers;
 			sourceTree = "<group>";
@@ -322,6 +325,7 @@
 				53B846E21EB3498D00C1227C /* Product.swift in Sources */,
 				613554B062F6F34D7C0CD623 /* StallEntityRetriever.swift in Sources */,
 				613553481F830F409E9ACC69 /* APIRequest.swift in Sources */,
+				613559F1236E99A992E5C724 /* ProductEntityRetriever.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

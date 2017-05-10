@@ -17,7 +17,7 @@ class IrisProvider {
 
     //Private Read/Write Provider
     fileprivate var provider: MoyaProvider<IrisAPI>!
-    
+
     //Singleton Instance
     public static let shared = IrisProvider()
 
@@ -34,15 +34,12 @@ class IrisProvider {
             return
         }
 
-        let endpointClosure = { (target: IrisAPI) -> Endpoint<IrisAPI> in
-            let headers = ["Authorization" : "Basic " + base64]
+        IrisProvider.shared.provider = MoyaProvider<IrisAPI>(endpointClosure: { (target: IrisAPI) -> Endpoint<IrisAPI> in
             let defaultEndpoint = MoyaProvider.defaultEndpointMapping(for: target)
-            return defaultEndpoint.adding(newHTTPHeaderFields: headers)
-        }
-
-        IrisProvider.shared.provider = MoyaProvider<IrisAPI>(endpointClosure: endpointClosure)
+            return defaultEndpoint.adding(newHTTPHeaderFields: [ "Authorization" : "Basic \(base64)" ])
+        })
     }
-    
+
     static func removeCredentials() {
         IrisProvider.shared.provider = MoyaProvider<IrisAPI>()
         Authentication.shared.removeKeychainCredentials()

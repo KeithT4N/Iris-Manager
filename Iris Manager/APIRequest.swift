@@ -21,14 +21,16 @@ func request(for action: IrisAPI, onSuccess: @escaping (Response) -> Void) {
                     case 403:
                         //Unauthorized
                         print("User is not authenticated")
+                        print("Response: \(String(data: response.data, encoding: .utf8) ?? "")")
+                        
                         Authentication.shared.removeKeychainCredentials()
+                        Authentication.shared.showSignInSheet()
                         break
 
-                    case 404:
-                        //Not Found
-                        break
-                    
                 default:
+                    print("Error performing request for action: \(action)")
+                    print("Status code: \(response.statusCode)")
+                    print("Response: \(String(data: response.data, encoding: .utf8) ?? "")")
                     break
                 }
                 break

@@ -55,7 +55,7 @@ extension IrisAPI: TargetType {
             case .getProducts:
                 return "/products/"
             case .getProductUpdates:
-                return "/products/update"
+                return "/products/update/"
             case .getProduct(let id):
                 return "/products/\(id)/"
             case .createProduct:

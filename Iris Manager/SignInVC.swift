@@ -16,12 +16,15 @@ class SignInVC: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var errorLabel:    UILabel!
     @IBOutlet weak var usernameField: UITextField!
     @IBOutlet weak var passwordField: UITextField!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var signInButton:  UIButton!
 
     override func viewDidLoad() {
-        errorLabel.isHidden = true
         usernameField.delegate = self
         passwordField.delegate = self
+        
+        errorLabel.isHidden = true
+        activityIndicator.isHidden = true
     }
 
     @IBAction func signInButtonPress(_ sender: Any) {
@@ -33,24 +36,32 @@ class SignInVC: UIViewController, UITextFieldDelegate {
     }
 
     fileprivate func signIn(username: String, password: String) {
-
-
+        activityIndicator.isHidden = false
+        errorLabel.isHidden = false
+        errorLabel.text = "Signing in..."
+        
         IrisProvider.setCredentials(username: username, password: password)
 
         IrisProvider.shared.api.request(.isSignedIn) { result in
+            
+            self.activityIndicator.isHidden = true
+            
             switch result {
                 case let .success(response):
                     do {
                         let responseDict = try JSONSerialization.jsonObject(with: response.data,
                                                                             options: []) as! [String : Any]
+                        
                         if responseDict["username"] != nil {
                             print("User successfully authenticated")
                             self.dismiss(animated: true, completion: nil)
-//                            StallEntityRetriever().updateLocalDatabase()
                             return
+                        } else if response.statusCode == 403 {
+                            print("Invalid credentials")
+                            self.errorLabel.text = "Invalid credentials"
                         } else {
-                            print("User is not signed in.")
-                            print(responseDict)
+                            print("Unkown error occurred")
+                            print("Status code: \(response.statusCode)")
                         }
                     } catch {
                         print("An error occurred deserializing JSON")
