@@ -15,9 +15,8 @@ class Stall: Object, Mappable, Updatable {
     dynamic var lastUpdated: Date   = Date()
 
     let products = List<Product>()
-
-    typealias SkeletonType = StallUpdateSkeleton
-
+    
+    
     override static func primaryKey() -> String? {
         return "id"
     }
@@ -32,7 +31,4 @@ class Stall: Object, Mappable, Updatable {
         lastUpdated = try! map.value("last_updated", using: CustomDateFormatTransform(formatString: "yyyy-MM-dd'T'HH:mm:ss.SSSSZ"))
     }
 
-    func toSkeleton() -> SkeletonType {
-        return StallUpdateSkeleton(id: self.id, lastUpdated: self.lastUpdated)
-    }
 }

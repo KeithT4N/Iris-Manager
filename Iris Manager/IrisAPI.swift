@@ -15,7 +15,7 @@ enum IrisAPI {
     case getStallUpdates
     case getStall(id: Int)
 
-    case createStall(stall: Stall)
+    case createStall(stallName: String)
     case modifyStall(stall: Stall)
     case deleteStall(id: Int)
 
@@ -72,27 +72,23 @@ extension IrisAPI: TargetType {
             case .isSignedIn:
                 return .get
 
-            case .getStalls,
-                 .getStallUpdates,
-                 .getStall:
+            case .getStalls, .getStallUpdates, .getStall:
                 return .get
             case .createStall:
                 return .post
             case .modifyStall:
-                return .patch
+                return .put
             case .deleteStall:
                 return .delete
 
-            case .getProducts,
-                 .getProductUpdates,
-                 .getProduct:
+            case .getProducts, .getProductUpdates, .getProduct:
                 return .get
 
             case .createProduct:
                 return .post
 
             case .modifyProduct:
-                return .patch
+                return .put
 
             case .deleteProduct:
                 return .delete
@@ -104,31 +100,26 @@ extension IrisAPI: TargetType {
             case .isSignedIn:
                 return nil
 
-            case .createStall(let stall),
-                 .modifyStall(let stall):
+            case .createStall(let stallName):
+                return [ "name" : stallName ]
+
+            case .modifyStall(let stall):
                 return [ "name" : stall.name ]
 
-            case .getStalls,
-                 .getStallUpdates,
-                 .getStall,
-                 .deleteStall:
+            case .getStalls, .getStallUpdates, .getStall, .deleteStall:
                 return nil
 
             case .createProduct(let product, let stallID),
                  .modifyProduct(let product, let stallID):
-                return [
-                        "name" : product.name,
-                        "price" : product.price,
-                        "description" : product.productDescription,
-                        "quantity" : product.quantity,
-                        "tags" : product.tags,
-                        "stall" : stallID
-                ]
 
-            case .getProducts,
-                 .getProductUpdates,
-                 .getProduct,
-                 .deleteProduct:
+                return [ "name" : product.name,
+                         "price" : product.price,
+                         "description" : product.productDescription,
+                         "quantity" : product.quantity,
+                         "tags" : product.tags,
+                         "stall" : stallID ]
+
+            case .getProducts, .getProductUpdates, .getProduct, .deleteProduct:
                 return nil
         }
     }
@@ -138,24 +129,16 @@ extension IrisAPI: TargetType {
             case .isSignedIn:
                 return URLEncoding.default
 
-            case .createStall(_),
-                 .modifyStall(_):
+            case .createStall(_), .modifyStall(_):
                 return JSONEncoding.default
 
-            case .getStalls,
-                 .getStallUpdates,
-                 .getStall,
-                 .deleteStall:
+            case .getStalls, .getStallUpdates, .getStall, .deleteStall:
                 return URLEncoding.default
 
-            case .createProduct,
-                 .modifyProduct:
+            case .createProduct, .modifyProduct:
                 return JSONEncoding.default
 
-            case .getProducts,
-                 .getProductUpdates,
-                 .getProduct,
-                 .deleteProduct:
+            case .getProducts, .getProductUpdates, .getProduct, .deleteProduct:
                 return URLEncoding.default
         }
     }

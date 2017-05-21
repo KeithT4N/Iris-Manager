@@ -13,4 +13,5 @@ target 'Iris Manager' do
   pod 'SwiftMessages'
   pod 'SwiftKeychainWrapper'
   pod 'IQKeyboardManagerSwift'
+  pod 'SwiftyBeaver'
 end

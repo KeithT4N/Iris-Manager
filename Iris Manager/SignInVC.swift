@@ -11,72 +11,70 @@ import Moya
 import SwiftMessages
 import SwiftKeychainWrapper
 
-class SignInVC: UIViewController, UITextFieldDelegate {
+protocol SignInVCDelegate {
+    func onAuthentication()
+}
 
-    @IBOutlet weak var errorLabel:    UILabel!
-    @IBOutlet weak var usernameField: UITextField!
-    @IBOutlet weak var passwordField: UITextField!
+class SignInVC: UIViewController, UITextFieldDelegate, AuthenticationDelegate {
+
+    @IBOutlet weak var errorLabel:        UILabel!
+    @IBOutlet weak var usernameField:     UITextField!
+    @IBOutlet weak var passwordField:     UITextField!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    @IBOutlet weak var signInButton:  UIButton!
+    @IBOutlet weak var signInButton:      UIButton!
+
+    var delegate: SignInVCDelegate?
 
     override func viewDidLoad() {
         usernameField.delegate = self
         passwordField.delegate = self
         
+        Authentication.add(delegate: self)
+
         errorLabel.isHidden = true
         activityIndicator.isHidden = true
     }
 
     @IBAction func signInButtonPress(_ sender: Any) {
-        errorLabel.isHidden = false
         let username = usernameField.text ?? ""
         let password = passwordField.text ?? ""
 
-        signIn(username: username, password: password)
+        self.signIn(username: username, password: password)
     }
 
-    fileprivate func signIn(username: String, password: String) {
+    func signIn(username: String, password: String) {
+        guard InternetReachabilityManager.isConnected else {
+            InternetReachabilityManager.showDisconnectionAlert {
+                //Recurse on retry
+                self.signIn(username: username, password: password)
+            }
+            return
+        }
+
         activityIndicator.isHidden = false
         errorLabel.isHidden = false
         errorLabel.text = "Signing in..."
-        
-        IrisProvider.setCredentials(username: username, password: password)
 
-        IrisProvider.shared.api.request(.isSignedIn) { result in
-            
-            self.activityIndicator.isHidden = true
-            
-            switch result {
-                case let .success(response):
-                    do {
-                        let responseDict = try JSONSerialization.jsonObject(with: response.data,
-                                                                            options: []) as! [String : Any]
-                        
-                        if responseDict["username"] != nil {
-                            print("User successfully authenticated")
-                            self.dismiss(animated: true, completion: nil)
-                            return
-                        } else if response.statusCode == 403 {
-                            print("Invalid credentials")
-                            self.errorLabel.text = "Invalid credentials"
-                        } else {
-                            print("Unkown error occurred")
-                            print("Status code: \(response.statusCode)")
-                        }
-                    } catch {
-                        print("An error occurred deserializing JSON")
-                        print(error.localizedDescription)
-                    }
-                case let .failure(error):
-                    print(error)
-                    print("A network error occurred")
-            }
-
-            //Only reaches on unsuccessful authentication
-            IrisProvider.removeCredentials()
-        }
+        Authentication.signIn(username: username, password: password)
     }
 
+    //MARK: - AuthenticationDelegate
+    func onAuthentication() {
+        self.dismiss(animated: true)
+    }
+
+    func onForbidden() {
+        activityIndicator.isHidden = true
+        self.errorLabel.text = "Invalid credentials"
+    }
+
+    func onGeneralFailure() {
+        activityIndicator.isHidden = true
+        self.errorLabel.text = "Unknown error occurred"
+    }
+
+
+    //MARK: - UITextFieldDelegate
     internal func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 
         defer {
@@ -87,8 +85,7 @@ class SignInVC: UIViewController, UITextFieldDelegate {
             passwordField.becomeFirstResponder()
         } else {
 
-            guard let username = usernameField.text,
-                  let password = passwordField.text else {
+            guard let username = usernameField.text, let password = passwordField.text else {
                 return true
             }
 
