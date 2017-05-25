@@ -115,7 +115,6 @@ class IrisProvider {
 
             //Upon internet disconnection, retry on reconnection
             if description == "The Internet connection appears to be offline." {
-                log.verbose("Internet connection error found. Retrying request upon reconnection...")
                 executeOrGeneralFailure(self.onInternetDisconnect)
                 return
             } else {
@@ -149,80 +148,4 @@ class IrisProvider {
         }
 
     }
-
-//
-//    static func request(for action: IrisAPI, onSuccess: @escaping(Response) -> Void, onFailure: (() -> Void)? = nil) {
-//        guard InternetReachabilityManager.isConnected else {
-//            InternetReachabilityManager.showDisconnectionAlert {
-//                //On retry, recurse
-//                request(for: action, onSuccess: onSuccess)
-//            }
-//            return
-//        }
-//
-//
-//        self.api.request(action) { result in
-//
-//            switch result {
-//
-//                case let .success(response):
-//                    switch response.statusCode {
-//                        case 200...299:
-//                            //Success
-//                            onSuccess(response)
-//                            return
-//
-//                        case 403:
-//                            //Unauthorized
-//                            log.error("User is not authenticated")
-//                            log.error("Response: \(String(data: response.data, encoding: .utf8) ?? "")")
-//
-//                            AuthenticationPersistence.shared.removeKeychainCredentials()
-//                            AuthenticationPersistence.shared.showSignInSheet()
-//
-//                            //On authentication, re-execute non-destructive action
-//                            if action.method == .get {
-//                                AuthenticationPersistence.shared.addCallableOnAuthentication {
-//                                    request(for: action, onSuccess: onSuccess)
-//                                    log.info("Re-executing \(action)")
-//                                }
-//                            }
-//
-//                            break
-//
-//                        default:
-//                            log.error("Error performing request for action: \(action)")
-
-//                            break
-//                    }
-//                    break
-//
-//                case let .failure(error):
-//                    log.error("Error performing request for action: \(action)")
-//
-//                    if let description = error.errorDescription {
-//                        log.error("Description: \(description)")
-//
-//                        //Upon internet disconnection, retry on reconnection
-//                        if description == "The Internet connection appears to be offline." {
-//                            log.verbose("Internet connection error found. Retrying request upon reconnection...")
-//                            request(for: action, onSuccess: onSuccess, onFailure: onFailure)
-//                        }
-//                    }
-//
-//                    if let reason = error.failureReason {
-//                        log.error("Failure reason: \(reason)")
-//                    }
-//
-//                    break
-//            }
-//
-//            onFailure?()
-//        }
-//
-//    }
-//
-//    static func request(for action: IrisAPI, onSuccess: @escaping (Response) -> Void) {
-//        request(for: action, onSuccess: onSuccess, onFailure: nil)
-//    }
 }

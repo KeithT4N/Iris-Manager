@@ -12,7 +12,7 @@ enum IrisAPI {
     case isSignedIn
 
     case getStalls
-    case getStallUpdates
+    case getStallUpdates(lastUpdate: Date)
     case getStall(id: Int)
 
     case createStall(stallName: String)
@@ -20,7 +20,7 @@ enum IrisAPI {
     case deleteStall(id: Int)
 
     case getProducts
-    case getProductUpdates
+    case getProductUpdates(lastUpdate: Date)
     case getProduct(productID: Int)
 
     case createProduct(product: Product, stallID: Int)
@@ -106,8 +106,11 @@ extension IrisAPI: TargetType {
             case .modifyStall(let stall):
                 return [ "name" : stall.name ]
 
-            case .getStalls, .getStallUpdates, .getStall, .deleteStall:
+            case .getStalls, .getStall, .deleteStall:
                 return nil
+
+            case .getStallUpdates(let lastUpdate):
+                return ["last_updated": ISO8601DateFormatter().string(from: lastUpdate)]
 
             case .createProduct(let product, let stallID),
                  .modifyProduct(let product, let stallID):
@@ -119,8 +122,11 @@ extension IrisAPI: TargetType {
                          "tags" : product.tags,
                          "stall" : stallID ]
 
-            case .getProducts, .getProductUpdates, .getProduct, .deleteProduct:
+            case .getProducts, .getProduct, .deleteProduct:
                 return nil
+
+            case .getProductUpdates(let lastUpdate):
+                return ["last_updated": ISO8601DateFormatter().string(from: lastUpdate)]
         }
     }
 

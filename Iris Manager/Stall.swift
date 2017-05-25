@@ -9,10 +9,9 @@
 import ObjectMapper
 import RealmSwift
 
-class Stall: Object, Mappable, Updatable {
+class Stall: Object, Mappable {
     dynamic var id:          Int    = 0
     dynamic var name:        String = ""
-    dynamic var lastUpdated: Date   = Date()
 
     let products = List<Product>()
     
@@ -28,7 +27,6 @@ class Stall: Object, Mappable, Updatable {
     func mapping(map: Map) {
         id <- map["id"]
         name <- map["name"]
-        lastUpdated = try! map.value("last_updated", using: CustomDateFormatTransform(formatString: "yyyy-MM-dd'T'HH:mm:ss.SSSSZ"))
     }
 
 }

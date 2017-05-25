@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "53BB0AC11EAC4A3800870A95"
-               BuildableName = "Iris Manager.app"
-               BlueprintName = "Iris Manager"
-               ReferencedContainer = "container:Iris Manager.xcodeproj">
+               BlueprintIdentifier = "28CDCDC6B3069635DE4D090C8FF14CEB"
+               BuildableName = "SwiftMessages.bundle"
+               BlueprintName = "SwiftMessages-SwiftMessages"
+               ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "53BB0AC11EAC4A3800870A95"
-            BuildableName = "Iris Manager.app"
-            BlueprintName = "Iris Manager"
-            ReferencedContainer = "container:Iris Manager.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -51,22 +42,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "53BB0AC11EAC4A3800870A95"
-            BuildableName = "Iris Manager.app"
-            BlueprintName = "Iris Manager"
-            ReferencedContainer = "container:Iris Manager.xcodeproj">
+            BlueprintIdentifier = "28CDCDC6B3069635DE4D090C8FF14CEB"
+            BuildableName = "SwiftMessages.bundle"
+            BlueprintName = "SwiftMessages-SwiftMessages"
+            ReferencedContainer = "container:Pods.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "OS_ACTIVITY_MODE = disable"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -76,16 +60,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "53BB0AC11EAC4A3800870A95"
-            BuildableName = "Iris Manager.app"
-            BlueprintName = "Iris Manager"
-            ReferencedContainer = "container:Iris Manager.xcodeproj">
+            BlueprintIdentifier = "28CDCDC6B3069635DE4D090C8FF14CEB"
+            BuildableName = "SwiftMessages.bundle"
+            BlueprintName = "SwiftMessages-SwiftMessages"
+            ReferencedContainer = "container:Pods.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

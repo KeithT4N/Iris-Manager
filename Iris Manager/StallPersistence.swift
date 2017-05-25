@@ -7,6 +7,7 @@ import Moya
 import RealmSwift
 import ObjectMapper
 import Moya_ObjectMapper
+import ObjectMapper
 
 protocol StallUpdateDelegate {
     func onUpdateFinish()
@@ -16,58 +17,64 @@ protocol StallUpdateDelegate {
 
 class StallPersistence {
 
-    static func create(stallName: String, onSuccess: @escaping (Stall) -> Void) {
+    static func create(stallName: String, onSuccess: @escaping (Stall) -> Void, onFailure: @escaping () -> Void) {
 
-        let requestCreator = IrisProvider.RequestCreator(onSuccess: { response in
+        let onStallCreationSuccess: (Response) -> Void = { response in
+
             guard let stall = Deserializer.toStall(response: response) else {
+                onFailure()
                 return
             }
 
             log.verbose("Create stall success")
 
-            LocalDatabase.saveToRealm(stall: stall, isUpdate: false)
             onSuccess(stall)
-        })
+        }
+
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: onStallCreationSuccess,
+                                                         onGeneralFailure: onFailure)
 
         requestCreator.request(for: .createStall(stallName: stallName))
     }
 
-    static func modify(oldStall old: Stall, newStall new: Stall, onSuccess: @escaping () -> Void) {
-
-        let requestCreator = IrisProvider.RequestCreator(onSuccess: { _ in
-
+    static func modify(newStall new: Stall, onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
+        
+        let onResponse: (Response) -> Void = { _ in
+            
             log.verbose("Edit stall success")
-
-            LocalDatabase.modify(oldStall: old, newStall: new)
-
+            
+            let oldStall = LocalDatabase.getStall(id: new.id)!
+            LocalDatabase.modify(oldStall: oldStall, newStall: new)
+            
             onSuccess()
-        })
+        }
+        
+
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: onResponse, onGeneralFailure: onFailure)
 
         requestCreator.request(for: .modifyStall(stall: new))
     }
 
-    static func delete(stall: Stall, onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
+    static func delete(id: Int, onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
 
         let onSuccess: (Response) -> Void = { _ in
-            LocalDatabase.deleteStall(stall: stall)
+            LocalDatabase.delete(id: id)
 
+            //TODO: Update Local Database
             onSuccess()
         }
 
         let requestCreator = IrisProvider.RequestCreator(onSuccess: onSuccess, onGeneralFailure: onFailure)
-        
-        requestCreator.request(for: .deleteStall(id: stall.id))
+
+        requestCreator.request(for: .deleteStall(id: id))
     }
 
     static func updateLocalDatabase(delegate: StallUpdateDelegate) {
-
         guard !UpdateManager.isRunning else {
             log.warning("Attempt to run stall update while update still running")
             delegate.onUpdateFail()
             return
         }
-
-
 
         log.info("Retrieving Stall Updates...")
         UpdateManager(delegate: delegate).update()
@@ -81,25 +88,6 @@ class StallPersistence {
 
     //MARK: - Stall Update Structure
 
-    fileprivate struct StallUpdateStructure: Mappable {
-        var id:          Int  = 0
-        var lastUpdated: Date = Date()
-
-        init? (map: Map) {
-        }
-
-        init(id: Int, lastUpdated: Date) {
-            self.id = id
-            self.lastUpdated = lastUpdated
-        }
-
-        mutating func mapping(map: Map) {
-            id <- map["id"]
-            lastUpdated = try! map.value("last_updated",
-                                         using: CustomDateFormatTransform(formatString: "yyyy-MM-dd'T'HH:mm:ss.SSSSZ"))
-        }
-    }
-
     fileprivate class UpdateManager {
 
         var delegate: StallUpdateDelegate
@@ -111,121 +99,115 @@ class StallPersistence {
 
         func onUpdateFail() {
             UpdateManager.isRunning = false
-            delegate.onUpdateFail()
+            self.delegate.onUpdateFail()
+        }
+
+        func onUpdateFinish() {
+            UpdateManager.isRunning = false
+            self.delegate.onUpdateFinish()
         }
 
         func update() {
+            //TODO: Create user settings signifying last update
             UpdateManager.isRunning = true
-            let requestCreator = IrisProvider.RequestCreator(onSuccess: self.onUpdateStructureResponse,
-                                                             onGeneralFailure: self.onUpdateFail)
-            requestCreator.request(for: .getStallUpdates)
+
+            guard let lastUpdated = ModelType.stalls.lastUpdated else {
+                log.verbose("No last update found. Initializing database...")
+                self.initializeDatabase()
+                return
+            }
+            
+            log.verbose("Last updated \(lastUpdated), fetching updates...")
+
+            self.requestUpdates(from: lastUpdated)
         }
 
-        func onUpdateStructureResponse(response: Response) {
-            guard let stallUpdates = Deserializer.toStallUpdateStructureArray(response: response) else {
+        //No history of updates? Fetch everything.
+        func initializeDatabase() {
+
+            let onRequestSuccess: (Response) -> Void = { response in
+                
+                guard let stalls = Deserializer.toStallArray(response: response) else {
+                    self.onUpdateFail()
+                    return
+                }
+                
+                LocalDatabase.save(stalls: stalls, isUpdate: false)
+                UpdateManager.isRunning = false
+                
+                let dateNow = Date()
+                log.info("Updating last updated for Stall")
+                ModelType.stalls.setLastUpdated(dateNow)
+                
+                log.info("Local database initialization complete")
+
+                self.onUpdateFinish()
+            }
+
+            let requestCreator = IrisProvider.RequestCreator(onSuccess: onRequestSuccess,
+                                                             onGeneralFailure: self.onUpdateFail)
+
+            requestCreator.request(for: .getStalls)
+        }
+
+        func requestUpdates(from date: Date) {
+            let requestCreator = IrisProvider.RequestCreator(onSuccess: onUpdateRequestSuccess, onGeneralFailure: onUpdateFail)
+            requestCreator.request(for: .getStallUpdates(lastUpdate: date))
+        }
+
+        func onUpdateRequestSuccess(response: Response) {
+            guard let responseDict = JSONDeserializer.toDictionary(json: response.data) else {
+                let response = String(data: response.data, encoding: .utf8) ?? "No response"
+                log.error("Response: \(response)")
+
+                self.onUpdateFail()
+                return
+            }
+            
+            guard let newDict = responseDict["new"] as? [[String : Any]],
+                  let modifiedDict = responseDict["modified"] as? [[String : Any]],
+                  let deletedDict = responseDict["deleted"] as? [Int] else {
+                log.error("An error occurred casting response dictionary")
+                log.error("Response Dictionary: \(responseDict)")
+
+                self.onUpdateFail()
+                return
+            }
+            
+            guard let new = Deserializer.toStallArray(dict: newDict),
+                  let modified = Deserializer.toStallArray(dict: modifiedDict) else {
+                log.error("An error occurred mapping dictionaries")
+
                 self.onUpdateFail()
                 return
             }
 
-            self.fetchUpdates(for: stallUpdates)
-        }
 
-        func fetchUpdates(for updateStructures: [StallUpdateStructure]) {
-            let currentStalls                                      = LocalDatabase.getStalls()
-            var stallsToRetrieve: [(stallID: Int, isUpdate: Bool)] = []
-            var stallsToDelete:   [Int]                            = []
-            var updateStructures                                   = updateStructures
+            //Update time first
+            let dateNow = Date() //Date always initializes with current date
+            log.info("Updating last updated for Stalls")
+            ModelType.stalls.setLastUpdated(dateNow)
+            
+            //Then update database
+            LocalDatabase.save(stalls: new, isUpdate: false)
+            LocalDatabase.save(stalls: modified, isUpdate: true)
 
-            for currentStall in currentStalls {
+            for id in deletedDict {
+                guard let stall = LocalDatabase.getStall(id: id) else {
+                    log.error("Could not find stall of id \(id)")
 
-                guard let index = updateStructures.index(where: { $0.id == currentStall.id }) else {
-                    //If ID is not present in updateStructures, the stall must have been deleted.
-                    stallsToDelete.append(currentStall.id)
+                    //If could not find stall, stall was probably deleted anyway
                     continue
                 }
 
-                let stallUpdate = updateStructures[index]
-
-                if currentStall.lastUpdated < stallUpdate.lastUpdated {
-                    stallsToRetrieve.append((stallID: stallUpdate.id, isUpdate: true))
-                }
-
-
-                //Remove all that are already examined
-                //Will leave only new stalls
-                updateStructures.remove(at: index)
-
+                LocalDatabase.delete(id: stall.id)
             }
 
-            //Items remaining must be new.
-            updateStructures.forEach { structure in
-                stallsToRetrieve.append((stallID: structure.id, isUpdate: false))
-            }
-
-            //Let's update!
-            delete(stalls: stallsToDelete)
-            retrieve(stalls: stallsToRetrieve)
-        }
-
-        func delete(stalls: [Int]) {
-            stalls.forEach { stallID in
-                log.verbose("Deleting local Stall ID \(stallID)...")
-                let stall = LocalDatabase.getStall(id: stallID)! //We know this exists.
-                LocalDatabase.deleteStall(stall: stall)
-            }
-        }
-
-        func retrieve(stalls: [(stallID: Int, isUpdate: Bool)]) {
-            let queue = DispatchQueue(label: "com.iris-manager.stall-retrieval", attributes: .concurrent, target: .main)
-            let group = DispatchGroup()
-
-            queue.async(group: group) {
-                stalls.forEach { id, isUpdate in
-                    group.enter()
-                    log.verbose("Retrieving Stall ID \(id), isUpdate: \(isUpdate)...")
-                    self.saveFromServer(stallID: id, isUpdate: isUpdate) {
-                        group.leave()
-                    }
-                }
-            }
-
-            group.notify(queue: DispatchQueue.main) {
-                self.delegate.onUpdateFinish()
-                UpdateManager.isRunning = false
-            }
-
-
-        }
-
-
-        func saveFromServer(stallID: Int, isUpdate: Bool, completion: @escaping () -> Void) {
-
-            let onSuccess: (Response) -> Void = { response in
-
-                defer { completion() }
-
-                guard let stall = Deserializer.toStall(response: response) else {
-                    self.onUpdateFail()
-                    return
-                }
-
-                LocalDatabase.saveToRealm(stall: stall, isUpdate: isUpdate)
-            }
-
-
-            let onFailure: () -> Void = {
-                self.onUpdateFail()
-                completion()
-            }
-
-            let requestCreator = IrisProvider.RequestCreator(onSuccess: onSuccess, onGeneralFailure: onFailure)
-
-            requestCreator.request(for: .getStall(id: stallID))
+            self.onUpdateFinish()
         }
 
 
     }
-
 
     //MARK: - Deserializer
 
@@ -240,6 +222,17 @@ class StallPersistence {
             }
         }
 
+        static func toStall(dict: [String : Any]) -> Stall? {
+            let stall = Stall(JSON: dict)
+
+            if stall == nil {
+                log.error("An error occured deserializing stall.")
+                log.error("Stall Object: \(dict)")
+            }
+
+            return stall
+        }
+
         static func toStallArray(response: Response) -> [Stall]? {
             do {
                 return try response.mapArray(Stall.self)
@@ -249,20 +242,28 @@ class StallPersistence {
             }
         }
 
-        static func toStallUpdateStructureArray(response: Response) -> [StallUpdateStructure]? {
-            do {
-                return try response.mapArray(StallUpdateStructure.self)
-            } catch {
-                handleDeserializationError(error: error, response: response)
-                return nil
+        static func toStallArray(dict: [[String : Any]]) -> [Stall]? {
+            var array = [ Stall ]()
+
+            for stallDict in dict {
+                guard let stall = toStall(dict: stallDict) else {
+                    return nil
+                }
+
+                array.append(stall)
             }
+
+            return array
         }
 
-        static func handleDeserializationError(error: Swift.Error, response: Response) {
+        static func handleDeserializationError(error: Swift.Error, response: Response? = nil) {
             log.error("An error occurred deserializing stall.")
             log.error(error.localizedDescription)
-            let responseString = String(data: response.data, encoding: .utf8) ?? "No response."
-            log.error("Response String: \(responseString)")
+
+            if let response = response {
+                let responseString = String(data: response.data, encoding: .utf8) ?? "No response."
+                log.error("Response String: \(responseString)")
+            }
         }
     }
 
@@ -284,19 +285,30 @@ class StallPersistence {
             return self.realm.objects(Stall.self).filter("id == \(id)").first
         }
 
-        static func saveToRealm(stall: Stall, isUpdate: Bool) {
+        static func save(stall: Stall, isUpdate: Bool) {
             try! self.realm.write {
                 self.realm.add(stall, update: isUpdate)
             }
         }
 
-        static func getStalls() -> [Stall] {
-            return Array(self.realm.objects(Stall.self))
+        static func save(stalls: [Stall], isUpdate: Bool) {
+            try! self.realm.write {
+                for stall in stalls {
+                    self.realm.add(stall, update: isUpdate)
+                }
+            }
         }
 
-        static func deleteStall(stall: Stall) {
+        static func getStalls() -> [Stall] {
+            return Array(self.realm.objects(Stall.self)).sorted {
+                $0.id < $1.id
+            }
+        }
+
+        static func delete(id: Int) {
             try! self.realm.write {
-                self.realm.delete(stall)
+                let stallToDelete = self.realm.objects(Stall.self).filter("id == \(id)")
+                self.realm.delete(stallToDelete)
             }
         }
 

@@ -10,14 +10,13 @@ import Foundation
 import ObjectMapper
 import RealmSwift
 
-class Product: Object, Mappable, Updatable {
+class Product: Object, Mappable {
     dynamic var id:                 Int    = 0
     dynamic var name:               String = ""
     dynamic var price:              Double = 0.0
     // NSObject has property named description.
     dynamic var productDescription: String = ""
     dynamic var quantity:           Int    = 0
-    dynamic var lastUpdated:        Date   = Date()
 
 
     /*
@@ -64,11 +63,6 @@ class Product: Object, Mappable, Updatable {
         productDescription <- map["description"]
         quantity <- map["quantity"]
         tags <- map["friends"]
-        lastUpdated = try! map.value("last_updated", using: CustomDateFormatTransform(formatString: "yyyy-MM-dd'T'HH:mm:ss.SSSSZ"))
-    }
-
-    func toSkeleton() -> ProductUpdateSkeleton {
-        return ProductUpdateSkeleton(id: self.id, lastUpdated: self.lastUpdated)
     }
 }
 

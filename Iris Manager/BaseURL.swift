@@ -7,7 +7,7 @@
 //
 
 class BaseURL {
-    let domain = "c6f8871a.ngrok.io"
+    let domain = "bbd163b0.ngrok.io"
     var completeAddress: String {
         return "https://" + domain + "/api"
     }

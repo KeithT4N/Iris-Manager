@@ -10,7 +10,9 @@ import Moya
 
 protocol AuthenticationDelegate: class {
     func onAuthentication()
+
     func onForbidden()
+
     func onGeneralFailure()
 }
 
@@ -55,38 +57,37 @@ class Authentication {
             delegate.onGeneralFailure()
         }
     }
-    
-    static fileprivate func isValidResponse(response: [String: Any]) -> Bool {
+
+    static fileprivate func isValidResponse(response: [String : Any]) -> Bool {
         return response["username"] != nil
     }
 
     static fileprivate func onSuccess(response: Response) {
-        do {
-            let responseDict = try JSONSerialization.jsonObject(with: response.data, options: []) as! [String: Any]
-
-            if self.isValidResponse(response: responseDict) {
-                log.info("Username successfully authentication")
-                self.callDelegatesSuccess()
-                return
-            }
-
-            if response.statusCode == 403 {
-                log.error("Server returned forbidden")
-                self.callDelegatesForbidden()
-            } else {
-                log.error("Unkown error occurred")
-                log.error("Status code: \(response.statusCode)")
-                self.callDelegatesFailure()
-            }
-
+        guard let responseDict = JSONDeserializer.toDictionary(json: response.data) else {
             let response = String(data: response.data, encoding: .utf8) ?? "No response"
             log.error("Response: \(response)")
-        } catch {
-            log.error("An error occurred deserializing JSON")
-            log.error(error.localizedDescription)
-            let response = String(data: response.data, encoding: .utf8) ?? "No response"
-            log.error("Response: \(response)")
+
+            self.callDelegatesFailure()
+            return
         }
+
+        if self.isValidResponse(response: responseDict) {
+            log.info("User successfully authenticated.")
+            self.callDelegatesSuccess()
+            return
+        }
+
+        if response.statusCode == 403 {
+            log.error("Server returned forbidden")
+            self.callDelegatesForbidden()
+        } else {
+            log.error("Unkown error occurred")
+            log.error("Status code: \(response.statusCode)")
+            self.callDelegatesFailure()
+        }
+
+        let response = String(data: response.data, encoding: .utf8) ?? "No response"
+        log.error("Response: \(response)")
     }
 
     static fileprivate func onFailure() {
@@ -96,8 +97,9 @@ class Authentication {
 
     static func signIn(username: String, password: String) {
         IrisProvider.setCredentials(username: username, password: password)
-        let requestCreator = IrisProvider.RequestCreator(onSuccess: Authentication.onSuccess, onGeneralFailure: Authentication.onFailure)
-        
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: Authentication.onSuccess,
+                                                         onGeneralFailure: Authentication.onFailure)
+
         requestCreator.request(for: .isSignedIn)
     }
 
