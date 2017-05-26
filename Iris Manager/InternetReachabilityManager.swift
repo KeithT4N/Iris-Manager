@@ -8,6 +8,7 @@
 
 import Alamofire
 import SwiftMessages
+import LKAlertController
 
 protocol InternetReachabilityManagerDelegate {
     func onInternetDisconnect()
@@ -129,30 +130,12 @@ class InternetReachabilityManager {
             return
         }
         
-        topWindow.rootViewController = UIViewController()
-        topWindow.windowLevel = UIWindowLevelAlert + 1
-        
-        
-        let alert
-            = UIAlertController(title: "Could not connect to the server.", message: "To continue, reconnect to the internet.", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (_) -> Void in
-            
-            topWindow.isHidden = true
-        }))
-        
-        alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { (_) -> Void in
-            executeQueuedActions()
-            
-            //Very important
-            topWindow.isHidden = true
-            
-        }))
-        
-        
-        topWindow.makeKeyAndVisible()
-        topWindow.rootViewController?.present(alert, animated: true, completion: nil)
-        return
+        Alert(title: "Could not connect to the server.")
+            .addAction("Cancel", style: .cancel)
+            .addAction("Retry", style: .default) { _ in
+                executeQueuedActions()
+            }
+            .show()
         
     }
 

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class InsertingStallCell: UITableViewCell {
+class ProcessingStallCell: UITableViewCell {
     @IBOutlet weak var label: UILabel!
 }
 

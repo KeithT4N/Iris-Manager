@@ -9,13 +9,14 @@
 import UIKit
 import RealmSwift
 import SwiftMessages
+import LKAlertController
 
 class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate, StallUpdateDelegate, AuthenticationDelegate {
 
-
-    var stalls: [( id: Int?, name: String, processing: Bool)] = [] {
-        //Sort by ID, nils go last
+    var stalls: [(id: Int?, name: String, processing: Bool)] = [] {
         didSet {
+
+            //Sort by ID, nils go last
             self.stalls = stalls.sorted { first, second in
 
                 //If the ID of the first is nil, send it back
@@ -34,18 +35,6 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
         }
     }
 
-
-//    var processingStalls = [ String ]()
-//    var stationaryStalls = [ Stall ]()
-//
-//    var displayingStalls: [(name: String, processing: Bool)] {
-//
-//        let stationaryStalls = self.stationaryStalls.map { ($0.name, false) }
-//        let processingStalls = self.processingStalls.map { ($0, true) }
-//
-//        return stationaryStalls + processingStalls
-//    }
-
     @IBOutlet weak var stallUpdateStatusIndicator: StatusIndicatorView!
     @IBOutlet weak var tableView:                  UITableView!
 
@@ -54,7 +43,9 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
 
         self.tableView.dataSource = self
         self.tableView.delegate = self
-        self.stalls = StallPersistence.getAllStalls().map { (id: $0.id, name: $0.name, processing: false) }
+        self.stalls = StallPersistence
+                .getAllStalls()
+                .map { (id: $0.id, name: $0.name, processing: false) }
 
         stallUpdateStatusIndicator.frame.size.height = 0
         self.stallUpdateStatusIndicator.alpha = 0
@@ -73,25 +64,24 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
     }
 
     @IBAction func addStallButtonPress(_ sender: Any) {
-        let alert = UIAlertController(title: "Create Stall", message: "Enter Stall name", preferredStyle: .alert)
+        var textField = UITextField()
+        textField.placeholder = "Stall name"
 
-        alert.addTextField(configurationHandler: { (textField: UITextField!) in
-            textField.placeholder = "Stall name"
-        })
-
-        alert.addAction(UIAlertAction(title: "Create", style: UIAlertActionStyle.default) { [weak alert] (_) in
-            let textField = alert!.textFields!.first!
-            let stallName = textField.text ?? ""
-            self.addStall(stallName: stallName)
-            textField.text = ""
-        })
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        Alert(title: "Create Stall", message: "Enter Stall Name")
+                .addTextField(&textField)
+                .addAction("Cancel", style: .cancel) { _ in
+                    textField.text = ""
+                }
+                .addAction("Create", style: .default) { _ in
+                    let stallName = textField.text ?? ""
+                    self.addStall(stallName: stallName)
+                    textField.text = ""
+                }
+                .show()
     }
 
     func addStall(stallName: String) {
-        
+
         //Must go before; Inserting row at the endIndex of current array
         let indexPath = IndexPath(item: self.stalls.endIndex, section: 0)
         self.stalls.append((name: stallName, processing: true, id: nil))
@@ -107,7 +97,7 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
 
             //Turn off processing
             self.stalls[stallIndex].processing = false
-            
+
             //Reload UI
             let indexPath = IndexPath(item: stallIndex, section: 0)
             self.tableView.reloadRows(at: [ indexPath ], with: .fade)
@@ -117,10 +107,10 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
         }
 
         let onCreateFail = {
-            //Find index on inserting array
+            //Find index on array
             let stallIndex = self.stalls.index { $0.name == stallName && $0.processing && $0.id == nil }!
 
-            //Remove from inserting array
+            //Remove from array
             self.stalls.remove(at: stallIndex)
 
             //Remove from tableview
@@ -136,23 +126,23 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
         let index = self.stalls.index { $0.name == oldName && !$0.processing && $0.id == id }!
         self.stalls[index].name = newName //Show changes first
         self.stalls[index].processing = true
-        self.tableView.reloadRows(at: [IndexPath(item: index, section: 0)], with: .fade)
+        self.tableView.reloadRows(at: [ IndexPath(item: index, section: 0) ], with: .fade)
 
         let newStall = Stall()
         newStall.id = id
         newStall.name = newName
-        
+
         let onSuccess = {
             let index = self.stalls.index { $0.name == newName && $0.processing && $0.id == id }!
             self.stalls[index].name = newName
             self.stalls[index].processing = false
-            self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
+            self.tableView.reloadRows(at: [ IndexPath(row: index, section: 0) ], with: .fade)
         }
-        
+
         let onFailure = {
             let index = self.stalls.index { $0.name == newName && $0.processing && $0.id == id }!
             self.stalls[index].processing = false
-            self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
+            self.tableView.reloadRows(at: [ IndexPath(row: index, section: 0) ], with: .fade)
         }
 
         StallPersistence.modify(newStall: newStall, onSuccess: onSuccess, onFailure: onFailure)
@@ -162,21 +152,21 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
         self.stalls[index].processing = true
 
         let name = self.stalls[index].name
-        let id = self.stalls[index].id! //This should exist. It's impossible otherwise.
+        let id   = self.stalls[index].id! //This should exist. It's impossible otherwise.
 
         //Update UI
-        self.tableView.reloadRows(at: [IndexPath(item: index, section: 0)], with: .fade)
+        self.tableView.reloadRows(at: [ IndexPath(item: index, section: 0) ], with: .fade)
 
         let onSuccess = {
             let index = self.stalls.index { $0.name == name && $0.processing && $0.id == id }!
             self.stalls.remove(at: index)
-            self.tableView.deleteRows(at: [ IndexPath(item: index, section: 0)], with: .automatic)
+            self.tableView.deleteRows(at: [ IndexPath(item: index, section: 0) ], with: .automatic)
         }
 
         let onFailure = {
             let index = self.stalls.index { $0.name == name && $0.processing && $0.id == id }!
             self.stalls[index].processing = false
-            self.tableView.reloadRows(at: [ IndexPath(item: index, section: 0)], with: .automatic)
+            self.tableView.reloadRows(at: [ IndexPath(item: index, section: 0) ], with: .automatic)
         }
 
         StallPersistence.delete(id: id, onSuccess: onSuccess, onFailure: onFailure)
@@ -214,30 +204,31 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
     }
 
     func showEditStall(stallID: Int, oldName: String) {
-        let alert = UIAlertController(title: "Edit Stall", message: "Enter Stall name", preferredStyle: .alert)
+        var textField = UITextField()
+        textField.text = oldName
+        textField.placeholder = "Stall name"
 
-        alert.addTextField(configurationHandler: { (textField: UITextField!) in
-            textField.text = oldName
-        })
-
-        alert.addAction(UIAlertAction(title: "Create", style: UIAlertActionStyle.default) { [weak alert] (_) in
-            let textField = alert!.textFields!.first!
-            let stallName = textField.text ?? ""
-            self.editStall(newName: stallName, id: stallID, oldName: oldName)
-            textField.text = ""
-        })
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        self.present(alert, animated: true, completion: nil)
-
+        Alert(title: "Edit Stall", message: "Enter Stall Name")
+                .addTextField(&textField)
+                .addAction("Cancel", style: .cancel) { _ in
+                    textField.text = ""
+                }
+                .addAction("Create", style: .default) { _ in
+                    let stallName = textField.text ?? ""
+                    self.editStall(newName: stallName, id: stallID, oldName: oldName)
+                    textField.text = ""
+                }
+                .show()
     }
 
     //MARK: - StallUpdateDelegate
     func onUpdateFinish() {
         log.info("Local Stall database updated.")
-        self.stalls = StallPersistence.getAllStalls().map { ($0.id, $0.name, false) }
-        self.tableView.reloadData()
+        self.stalls = StallPersistence
+                .getAllStalls()
+                .map { ($0.id, $0.name, false) }
 
+        self.tableView.reloadData()
         self.hideUpdateIndicator()
     }
 
@@ -283,13 +274,11 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-
         let stall = self.stalls[indexPath.row]
 
-
         if stall.processing {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "InsertingStallCell",
-                                                     for: indexPath) as! InsertingStallCell
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ProcessingStallCell",
+                                                     for: indexPath) as! ProcessingStallCell
             cell.label.text = stall.name
             return cell
         } else {
@@ -299,5 +288,5 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
         }
 
     }
-    
+
 }

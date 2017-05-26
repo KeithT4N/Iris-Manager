@@ -14,4 +14,6 @@ target 'Iris Manager' do
   pod 'SwiftKeychainWrapper'
   pod 'IQKeyboardManagerSwift'
   pod 'SwiftyBeaver'
+  pod 'LKAlertController'
+  pod 'DZNEmptyDataSet'
 end
