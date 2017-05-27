@@ -8,28 +8,40 @@
 
 import Moya
 
+//Protocol must be class for instance to be compared on Authentication.add(delegate:)
 protocol AuthenticationDelegate: class {
-    func onAuthentication()
+    func onAuthenticationSuccess()
 
-    func onForbidden()
-
-    func onGeneralFailure()
+    func onAuthenticationFailure()
 }
 
 extension AuthenticationDelegate {
-    func onForbidden() {
-        //If forbidden is not implemented, call general failure's implementation
-        onGeneralFailure()
-    }
-
-    func onGeneralFailure() {
-        //The implementation of general failure is optional.
+    func onAuthenticationFailure() {
+        //Optional function
     }
 }
 
 class Authentication {
 
     static fileprivate var delegates: [AuthenticationDelegate] = []
+
+    static func showSignInSheet() {
+        let appDelegate = UIKit.UIApplication.shared.delegate!
+
+        if let tabBarController = appDelegate.window??.rootViewController as? UITabBarController {
+            let storyboard = UIStoryboard.init(name: "Main", bundle: nil)
+            let signInVC   = storyboard.instantiateViewController(withIdentifier: "SignInVC") as! SignInVC
+
+            guard !signInVC.isBeingPresented else {
+                log.warning("Attempt to present sign in sheet when it is already showing")
+                return
+            }
+
+            signInVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+
+            tabBarController.present(signInVC, animated: true, completion: nil)
+        }
+    }
 
     static func add(delegate: AuthenticationDelegate) {
         if self.delegates.contains(where: { $0 === delegate }) {
@@ -42,65 +54,44 @@ class Authentication {
 
     static fileprivate func callDelegatesSuccess() {
         delegates.forEach { delegate in
-            delegate.onAuthentication()
-        }
-    }
-
-    static fileprivate func callDelegatesForbidden() {
-        delegates.forEach { delegate in
-            delegate.onForbidden()
+            delegate.onAuthenticationSuccess()
         }
     }
 
     static fileprivate func callDelegatesFailure() {
         delegates.forEach { delegate in
-            delegate.onGeneralFailure()
+            delegate.onAuthenticationFailure()
         }
     }
 
-    static fileprivate func isValidResponse(response: [String : Any]) -> Bool {
-        return response["username"] != nil
-    }
+    static fileprivate func onResponse(response: Response) {
+        guard let responseDict = JSONDeserializer.toDictionary(json: response.data),
+              let token = responseDict["token"] as? String else {
 
-    static fileprivate func onSuccess(response: Response) {
-        guard let responseDict = JSONDeserializer.toDictionary(json: response.data) else {
             let response = String(data: response.data, encoding: .utf8) ?? "No response"
             log.error("Response: \(response)")
 
+            IrisProvider.removeCredentials()
             self.callDelegatesFailure()
             return
         }
 
-        if self.isValidResponse(response: responseDict) {
-            log.info("User successfully authenticated.")
-            self.callDelegatesSuccess()
-            return
-        }
-
-        if response.statusCode == 403 {
-            log.error("Server returned forbidden")
-            self.callDelegatesForbidden()
-        } else {
-            log.error("Unkown error occurred")
-            log.error("Status code: \(response.statusCode)")
-            self.callDelegatesFailure()
-        }
-
-        let response = String(data: response.data, encoding: .utf8) ?? "No response"
-        log.error("Response: \(response)")
+        AuthenticationPersistence.token = token
+        IrisProvider.authenticateFromKeychain()
+        log.info("User successfully authenticated.")
+        self.callDelegatesSuccess()
     }
 
     static fileprivate func onFailure() {
-        self.callDelegatesFailure()
         IrisProvider.removeCredentials()
+        self.callDelegatesFailure()
     }
 
     static func signIn(username: String, password: String) {
-        IrisProvider.setCredentials(username: username, password: password)
-        let requestCreator = IrisProvider.RequestCreator(onSuccess: Authentication.onSuccess,
-                                                         onGeneralFailure: Authentication.onFailure)
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: Authentication.onResponse,
+                                                         onGeneralFailure: self.onFailure)
 
-        requestCreator.request(for: .isSignedIn)
+        requestCreator.request(for: .getAuthToken(username: username, password: password))
     }
 
 }

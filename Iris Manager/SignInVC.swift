@@ -11,10 +11,6 @@ import Moya
 import SwiftMessages
 import SwiftKeychainWrapper
 
-protocol SignInVCDelegate {
-    func onAuthentication()
-}
-
 class SignInVC: UIViewController, UITextFieldDelegate, AuthenticationDelegate {
 
     @IBOutlet weak var errorLabel:        UILabel!
@@ -22,8 +18,6 @@ class SignInVC: UIViewController, UITextFieldDelegate, AuthenticationDelegate {
     @IBOutlet weak var passwordField:     UITextField!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var signInButton:      UIButton!
-
-    var delegate: SignInVCDelegate?
 
     override func viewDidLoad() {
         usernameField.delegate = self
@@ -59,16 +53,11 @@ class SignInVC: UIViewController, UITextFieldDelegate, AuthenticationDelegate {
     }
 
     //MARK: - AuthenticationDelegate
-    func onAuthentication() {
+    func onAuthenticationSuccess() {
         self.dismiss(animated: true)
     }
 
-    func onForbidden() {
-        activityIndicator.isHidden = true
-        self.errorLabel.text = "Invalid credentials"
-    }
-
-    func onGeneralFailure() {
+    func onAuthenticationFailure() {
         activityIndicator.isHidden = true
         self.errorLabel.text = "Unknown error occurred"
     }

@@ -9,7 +9,7 @@
 import Moya
 
 enum IrisAPI {
-    case isSignedIn
+    case getAuthToken(username: String, password: String)
 
     case getStalls
     case getStallUpdates(lastUpdate: Date)
@@ -35,8 +35,8 @@ extension IrisAPI: TargetType {
 
     var path: String {
         switch self {
-            case .isSignedIn:
-                return "/logincheck/"
+            case .getAuthToken(_, _):
+                return "/get_auth_token/"
 
             case .getStalls:
                 return "/stalls/"
@@ -69,8 +69,8 @@ extension IrisAPI: TargetType {
 
     var method: Moya.Method {
         switch self {
-            case .isSignedIn:
-                return .get
+            case .getAuthToken:
+                return .post
 
             case .getStalls, .getStallUpdates, .getStall:
                 return .get
@@ -97,8 +97,8 @@ extension IrisAPI: TargetType {
 
     var parameters: [String : Any]? {
         switch self {
-            case .isSignedIn:
-                return nil
+            case .getAuthToken(let username, let password):
+                return ["username": username, "password": password]
 
             case .createStall(let stallName):
                 return [ "name" : stallName ]
@@ -132,8 +132,8 @@ extension IrisAPI: TargetType {
 
     var parameterEncoding: ParameterEncoding {
         switch self {
-            case .isSignedIn:
-                return URLEncoding.default
+            case .getAuthToken(_, _):
+                return JSONEncoding.default
 
             case .createStall(_), .modifyStall(_):
                 return JSONEncoding.default

@@ -107,8 +107,8 @@
 			isa = PBXGroup;
 			children = (
 				53795C2B1ECD120300FD0B1E /* Authentication.swift */,
-				61355380E6CB6143EF500557 /* Persistence */,
 				6135534896341EBBC3D0F29A /* JSONDeserializer.swift */,
+				61355380E6CB6143EF500557 /* Persistence */,
 			);
 			name = "Functional Core";
 			sourceTree = "<group>";

@@ -30,9 +30,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.internetReachabilityManager = InternetReachabilityManager.shared
         
         
-        if !AuthenticationPersistence.shared.isSignedIn() {
+        if !AuthenticationPersistence.isSignedIn() {
             log.info("User not signed in.")
-            AuthenticationPersistence.shared.showSignInSheet()
+            Authentication.showSignInSheet()
         } else {
             log.verbose("Logging user in from keychain...")
             IrisProvider.authenticateFromKeychain()

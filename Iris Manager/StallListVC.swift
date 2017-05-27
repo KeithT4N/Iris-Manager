@@ -9,12 +9,24 @@
 import UIKit
 import RealmSwift
 import SwiftMessages
+import DZNEmptyDataSet
 import LKAlertController
 
-class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate, StallUpdateDelegate, AuthenticationDelegate {
+class StallListVC: UIViewController,
+                   UITableViewDataSource,
+                   UITableViewDelegate,
+                   StallUpdateDelegate,
+                   AuthenticationDelegate,
+                   DZNEmptyDataSetSource,
+                   DZNEmptyDataSetDelegate {
 
     var stalls: [(id: Int?, name: String, processing: Bool)] = [] {
         didSet {
+            
+            if self.stalls.isEmpty {
+                self.tableView.reloadEmptyDataSet()
+                return //We don't need to sort an empty array
+            }
 
             //Sort by ID, nils go last
             self.stalls = stalls.sorted { first, second in
@@ -53,6 +65,10 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
 
         Authentication.add(delegate: self)
 
+        self.tableView.emptyDataSetSource = self
+        self.tableView.emptyDataSetDelegate = self
+        self.tableView.tableFooterView = UIView()
+
         self.updateStallDatabase()
     }
 
@@ -64,20 +80,25 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
     }
 
     @IBAction func addStallButtonPress(_ sender: Any) {
+        showAddStall()
+    }
+    
+    func showAddStall() {
         var textField = UITextField()
         textField.placeholder = "Stall name"
-
+        
         Alert(title: "Create Stall", message: "Enter Stall Name")
-                .addTextField(&textField)
-                .addAction("Cancel", style: .cancel) { _ in
-                    textField.text = ""
-                }
-                .addAction("Create", style: .default) { _ in
-                    let stallName = textField.text ?? ""
-                    self.addStall(stallName: stallName)
-                    textField.text = ""
-                }
-                .show()
+            .addTextField(&textField)
+            .addAction("Cancel", style: .cancel) { _ in
+                textField.text = ""
+            }
+            .addAction("Create", style: .default) { _ in
+                let stallName = textField.text ?? ""
+                self.addStall(stallName: stallName)
+                textField.text = ""
+            }
+            .show()
+
     }
 
     func addStall(stallName: String) {
@@ -238,7 +259,7 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
     }
 
     //MARK: - AuthenticationDelegate
-    func onAuthentication() {
+    func onAuthenticationSuccess() {
         self.updateStallDatabase()
     }
 
@@ -287,6 +308,35 @@ class StallListVC: UIViewController, UITableViewDataSource, UITableViewDelegate,
             return cell
         }
 
+    }
+
+    //MARK: - DZNEmptyDataSetSource
+    func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString {
+        return NSAttributedString(string: "There doesn't seem to be anything here.")
+    }
+
+    func description(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString {
+        return NSAttributedString(string: "")
+    }
+
+    func image(forEmptyDataSet scrollView: UIScrollView) -> UIImage? {
+        return nil
+    }
+
+    func buttonTitle(forEmptyDataSet scrollView: UIScrollView, for state: UIControlState) -> NSAttributedString? {
+        return NSAttributedString(string: "Create stall", attributes: [
+            NSFontAttributeName : UIFont.systemFont(ofSize: 17),
+            NSForegroundColorAttributeName: self.view.tintColor
+        ])
+    }
+
+    //MARK: - DZNEmptyDataSetDelegate
+    func emptyDataSetShouldDisplay(_ scrollView: UIScrollView) -> Bool {
+        return self.stalls.isEmpty
+    }
+
+    func emptyDataSet(_ scrollView: UIScrollView, didTap button: UIButton) {
+        showAddStall()
     }
 
 }

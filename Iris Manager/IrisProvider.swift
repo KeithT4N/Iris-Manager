@@ -13,28 +13,19 @@ class IrisProvider {
     //Public Read Only Provider
     fileprivate static var provider = MoyaProvider<IrisAPI>()
 
-    static func setCredentials(username: String, password: String) {
-        AuthenticationPersistence.shared.setKeychainCredentials(username: username, password: password)
-        authenticateFromKeychain()
-    }
-
-
     static func authenticateFromKeychain() {
-        guard let base64 = AuthenticationPersistence.shared.getBase64() else {
-            log.error("Unable to base64 credentials")
-            return
-        }
+        let token = AuthenticationPersistence.token
 
         self.provider = MoyaProvider<IrisAPI>(endpointClosure: { (target: IrisAPI) -> Endpoint<IrisAPI> in
             let defaultEndpoint = MoyaProvider.defaultEndpointMapping(for: target)
-            return defaultEndpoint.adding(newHTTPHeaderFields: [ "Authorization" : "Basic \(base64)" ])
+            return defaultEndpoint.adding(newHTTPHeaderFields: [ "Authorization" : "Token \(token)" ])
         })
 
     }
 
     static func removeCredentials() {
-        self.provider = MoyaProvider<IrisAPI>()
-        AuthenticationPersistence.shared.removeKeychainCredentials()
+        self.provider = MoyaProvider<IrisAPI>() //Remove EndPoint Closure
+        AuthenticationPersistence.removeToken()
     }
 
     class RequestCreator {
@@ -46,7 +37,7 @@ class IrisProvider {
         fileprivate var onGeneralFailure:     (() -> Void)?
 
         //Executes on 403 Forbidden
-        fileprivate var onForbidden:          (() -> Void)?
+        fileprivate var onUnauthorized:       (() -> Void)?
 
         //Executes when request could not be sent
         fileprivate var onInternetDisconnect: (() -> Void)?
@@ -58,7 +49,7 @@ class IrisProvider {
         fileprivate var finally:              (() -> Void)?
 
         init(onSuccess: @escaping (Response) -> Void,
-             onForbidden:  (() -> Void)? = nil,
+             onUnauthorized:  (() -> Void)? = nil,
              onInternetDisconnect:  (() -> Void)? = nil,
              onNotFound:  (() -> Void)? = nil,
              onGeneralFailure:  (() -> Void)? = nil) {
@@ -66,7 +57,7 @@ class IrisProvider {
             self.onSuccess = onSuccess
             self.onGeneralFailure = onGeneralFailure
             self.onInternetDisconnect = onInternetDisconnect
-            self.onForbidden = onForbidden
+            self.onUnauthorized = onUnauthorized
             self.onNotFound = onNotFound
         }
 
@@ -88,10 +79,9 @@ class IrisProvider {
 
                 switch result {
                     case let .success(response):
-                        self.handleSuccess(response: response, from: action)
+                        self.handleResponse(response: response, from: action)
 
                     case let .failure(error):
-                        log.error("Error performing request for action: \(action)")
                         self.handleFailure(error: error, from: action)
                 }
 
@@ -99,8 +89,7 @@ class IrisProvider {
         }
 
         fileprivate func handleFailure(error: MoyaError, from action: IrisAPI) {
-            
-            log.error("Unable to do action \(action)")
+            log.error("Error performing request for action: \(action)")
             log.error(error.localizedDescription)
 
             if let reason = error.failureReason {
@@ -116,22 +105,21 @@ class IrisProvider {
             //Upon internet disconnection, retry on reconnection
             if description == "The Internet connection appears to be offline." {
                 executeOrGeneralFailure(self.onInternetDisconnect)
-                return
             } else {
                 self.onGeneralFailure?()
             }
-
         }
 
-        fileprivate func handleSuccess(response: Response, from action: IrisAPI) {
+        fileprivate func handleResponse(response: Response, from action: IrisAPI) {
             switch response.statusCode {
                 case 200...299:
                     onSuccess(response)
 
-                case 403:
-                    log.error("Unable to do action \(action) - 403 Forbidden")
-                    executeOrGeneralFailure(self.onForbidden)
-                    AuthenticationPersistence.shared.showSignInSheet()
+                case 401:
+                    log.error("Unable to do action \(action) - 401 Unauthorized")
+                    log.error("Response: \(String(data: response.data, encoding: .utf8) ?? "")")
+                    executeOrGeneralFailure(self.onUnauthorized)
+                    Authentication.showSignInSheet()
 
                 case 404:
                     log.error("Unable to do action \(action) - 404 not found")
