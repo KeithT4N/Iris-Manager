@@ -23,6 +23,7 @@ PODS:
   - RealmSwift (2.7.0):
     - Realm (= 2.7.0)
   - Result (3.2.2)
+  - Starscream (2.0.4)
   - SwiftKeychainWrapper (3.0.1)
   - SwiftMessages (3.3.3)
   - SwiftyBeaver (1.2.2)
@@ -35,6 +36,7 @@ DEPENDENCIES:
   - Moya-ObjectMapper
   - ObjectMapper+Realm
   - RealmSwift
+  - Starscream
   - SwiftKeychainWrapper
   - SwiftMessages
   - SwiftyBeaver
@@ -51,10 +53,11 @@ SPEC CHECKSUMS:
   Realm: 07e5d3a9e0e41d65fd5f9f05150ed6295d0f093b
   RealmSwift: 6d06425d3900c86473c4f323bf6949b43fca22bc
   Result: 4edd39003fdccf281d418ee1b006571f70123250
+  Starscream: df5974ee928b157c8eda8af8de7c620276b7dfcc
   SwiftKeychainWrapper: 38952a3636320ae61bad3513cadd870929de7a4a
   SwiftMessages: 09cea3336e3fb63c3578983c8aac65acaa6d884a
   SwiftyBeaver: 90a39e3dc5136b7285f2e4c870b107e3933b8b84
 
-PODFILE CHECKSUM: 8bf9363ba89f63c934897d3c7e9a9c3136b3124f
+PODFILE CHECKSUM: 40de60943a567a1f27a7eae8301bd3cf31567412
 
-COCOAPODS: 1.1.1
+COCOAPODS: 1.2.1

@@ -18,12 +18,24 @@ class SignInVC: UIViewController, UITextFieldDelegate, AuthenticationDelegate {
     @IBOutlet weak var passwordField:     UITextField!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var signInButton:      UIButton!
+    
+    fileprivate static var onSuccess: (() -> Void)? = nil
+    fileprivate static var onFailure: (() -> Void)? = nil
 
     override func viewDidLoad() {
         usernameField.delegate = self
         passwordField.delegate = self
         
-        Authentication.add(delegate: self)
+        Authentication.add(delegate: SignInVC.self)
+        
+        SignInVC.onSuccess = {
+            self.dismiss(animated: true)
+        }
+        
+        SignInVC.onFailure = {
+            self.activityIndicator.isHidden = true
+            self.errorLabel.text = "Unknown error occurred"
+        }
 
         errorLabel.isHidden = true
         activityIndicator.isHidden = true
@@ -53,13 +65,12 @@ class SignInVC: UIViewController, UITextFieldDelegate, AuthenticationDelegate {
     }
 
     //MARK: - AuthenticationDelegate
-    func onAuthenticationSuccess() {
-        self.dismiss(animated: true)
+    static func onAuthenticationSuccess() {
+        self.onSuccess?()
     }
 
-    func onAuthenticationFailure() {
-        activityIndicator.isHidden = true
-        self.errorLabel.text = "Unknown error occurred"
+    static func onAuthenticationFailure() {
+        self.onFailure?()
     }
 
 

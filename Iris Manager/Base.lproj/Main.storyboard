@@ -64,7 +64,7 @@
                                         <rect key="frame" x="0.0" y="72" width="320" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="center" tableViewCell="SLa-Nu-yX2" id="lWI-gZ-YNo">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rmN-i7-dIg">
@@ -98,25 +98,12 @@
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
-                            <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3dc-V9-JZa" customClass="StatusIndicatorView" customModule="Iris_Manager" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="64" width="320" height="35"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" priority="750" constant="35" id="H5Y-v3-fVt"/>
-                                </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="string" keyPath="statusName" value="Updating Stalls..."/>
-                                </userDefinedRuntimeAttributes>
-                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="9gN-H4-G52" firstAttribute="centerY" secondItem="Y24-DG-Ez1" secondAttribute="centerY" id="DVr-pp-7wG"/>
                             <constraint firstItem="9gN-H4-G52" firstAttribute="centerX" secondItem="Y24-DG-Ez1" secondAttribute="centerX" id="JAu-3c-w6E"/>
-                            <constraint firstItem="3dc-V9-JZa" firstAttribute="width" secondItem="9gN-H4-G52" secondAttribute="width" id="NUq-fO-at8"/>
-                            <constraint firstItem="3dc-V9-JZa" firstAttribute="centerX" secondItem="Y24-DG-Ez1" secondAttribute="centerX" id="bWT-BQ-ByG"/>
                             <constraint firstItem="9gN-H4-G52" firstAttribute="height" secondItem="Y24-DG-Ez1" secondAttribute="height" id="gRP-ji-rnB"/>
-                            <constraint firstItem="3dc-V9-JZa" firstAttribute="top" secondItem="AXD-3q-bjX" secondAttribute="bottom" id="rDe-B8-FeP"/>
                             <constraint firstItem="9gN-H4-G52" firstAttribute="width" secondItem="Y24-DG-Ez1" secondAttribute="width" id="sr6-jL-roK"/>
                         </constraints>
                     </view>
@@ -129,7 +116,6 @@
                     </navigationItem>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
-                        <outlet property="stallUpdateStatusIndicator" destination="3dc-V9-JZa" id="3ao-Bm-HPv"/>
                         <outlet property="tableView" destination="9gN-H4-G52" id="65X-4j-mrU"/>
                     </connections>
                 </viewController>
@@ -150,7 +136,7 @@
                                 <rect key="frame" x="0.0" y="28" width="768" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KXR-St-erX" id="cu6-ri-kac">
-                                    <rect key="frame" x="0.0" y="0.0" width="768" height="43.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
                             </tableViewCell>

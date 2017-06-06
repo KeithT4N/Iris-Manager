@@ -30,7 +30,7 @@ enum IrisAPI {
 
 extension IrisAPI: TargetType {
     var baseURL: URL {
-        return URL(string: BaseURL.shared.completeAddress)!
+        return URL(string: BaseURL.completeAddress)!
     }
 
     var path: String {
@@ -109,9 +109,6 @@ extension IrisAPI: TargetType {
             case .getStalls, .getStall, .deleteStall:
                 return nil
 
-            case .getStallUpdates(let lastUpdate):
-                return ["last_updated": ISO8601DateFormatter().string(from: lastUpdate)]
-
             case .createProduct(let product, let stallID),
                  .modifyProduct(let product, let stallID):
 
@@ -125,8 +122,12 @@ extension IrisAPI: TargetType {
             case .getProducts, .getProduct, .deleteProduct:
                 return nil
 
-            case .getProductUpdates(let lastUpdate):
-                return ["last_updated": ISO8601DateFormatter().string(from: lastUpdate)]
+            case
+            .getStallUpdates(let lastUpdate),
+            .getProductUpdates(let lastUpdate):
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
+                return ["last_updated": formatter.string(from: lastUpdate)]
         }
     }
 

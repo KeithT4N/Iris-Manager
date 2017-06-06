@@ -16,13 +16,12 @@ class StallListVC: UIViewController,
                    UITableViewDataSource,
                    UITableViewDelegate,
                    StallUpdateDelegate,
-                   AuthenticationDelegate,
                    DZNEmptyDataSetSource,
                    DZNEmptyDataSetDelegate {
 
     var stalls: [(id: Int?, name: String, processing: Bool)] = [] {
         didSet {
-            
+
             if self.stalls.isEmpty {
                 self.tableView.reloadEmptyDataSet()
                 return //We don't need to sort an empty array
@@ -41,17 +40,18 @@ class StallListVC: UIViewController,
                     return true
                 }
 
-                //If the ID of the first is greater than the second, stay
-                return firstID > secondID
+                //If the ID of the first is less than the second, stay
+                return firstID < secondID
             }
         }
     }
 
-    @IBOutlet weak var stallUpdateStatusIndicator: StatusIndicatorView!
-    @IBOutlet weak var tableView:                  UITableView!
+    @IBOutlet weak var tableView: UITableView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        StallUpdateManager.delegate = self
 
         self.tableView.dataSource = self
         self.tableView.delegate = self
@@ -59,45 +59,31 @@ class StallListVC: UIViewController,
                 .getAllStalls()
                 .map { (id: $0.id, name: $0.name, processing: false) }
 
-        stallUpdateStatusIndicator.frame.size.height = 0
-        self.stallUpdateStatusIndicator.alpha = 0
-        stallUpdateStatusIndicator.isHidden = true
-
-        Authentication.add(delegate: self)
-
         self.tableView.emptyDataSetSource = self
         self.tableView.emptyDataSetDelegate = self
         self.tableView.tableFooterView = UIView()
-
-        self.updateStallDatabase()
     }
 
-    //MARK: - StallListVC 
-
-    func updateStallDatabase() {
-        StallPersistence.updateLocalDatabase(delegate: self)
-        showUpdateIndicator()
-    }
-
+    //MARK: - StallListVC
     @IBAction func addStallButtonPress(_ sender: Any) {
         showAddStall()
     }
-    
+
     func showAddStall() {
         var textField = UITextField()
         textField.placeholder = "Stall name"
-        
+
         Alert(title: "Create Stall", message: "Enter Stall Name")
-            .addTextField(&textField)
-            .addAction("Cancel", style: .cancel) { _ in
-                textField.text = ""
-            }
-            .addAction("Create", style: .default) { _ in
-                let stallName = textField.text ?? ""
-                self.addStall(stallName: stallName)
-                textField.text = ""
-            }
-            .show()
+                .addTextField(&textField)
+                .addAction("Cancel", style: .cancel) { _ in
+                    textField.text = ""
+                }
+                .addAction("Create", style: .default) { _ in
+                    let stallName = textField.text ?? ""
+                    self.addStall(stallName: stallName)
+                    textField.text = ""
+                }
+                .show()
 
     }
 
@@ -111,23 +97,7 @@ class StallListVC: UIViewController,
         self.tableView.insertRows(at: [ indexPath ], with: .bottom)
         self.tableView.endUpdates()
 
-        let onCreateSuccess: (Stall) -> Void = { stall in
-
-            //Find index on array with initial characteristics
-            let stallIndex = self.stalls.index { $0.name == stallName && $0.processing && $0.id == nil }!
-
-            //Turn off processing
-            self.stalls[stallIndex].processing = false
-
-            //Reload UI
-            let indexPath = IndexPath(item: stallIndex, section: 0)
-            self.tableView.reloadRows(at: [ indexPath ], with: .fade)
-
-            //Update database
-            self.updateStallDatabase()
-        }
-
-        let onCreateFail = {
+        StallPersistence.create(stallName: stallName, onFailure: {
             //Find index on array
             let stallIndex = self.stalls.index { $0.name == stallName && $0.processing && $0.id == nil }!
 
@@ -137,10 +107,7 @@ class StallListVC: UIViewController,
             //Remove from tableview
             let indexPath = IndexPath(item: stallIndex, section: 0)
             self.tableView.deleteRows(at: [ indexPath ], with: .fade)
-        }
-
-        StallPersistence.create(stallName: stallName, onSuccess: onCreateSuccess, onFailure: onCreateFail)
-
+        })
     }
 
     func editStall(newName: String, id: Int, oldName: String) {
@@ -153,20 +120,13 @@ class StallListVC: UIViewController,
         newStall.id = id
         newStall.name = newName
 
-        let onSuccess = {
-            let index = self.stalls.index { $0.name == newName && $0.processing && $0.id == id }!
-            self.stalls[index].name = newName
-            self.stalls[index].processing = false
-            self.tableView.reloadRows(at: [ IndexPath(row: index, section: 0) ], with: .fade)
-        }
-
         let onFailure = {
             let index = self.stalls.index { $0.name == newName && $0.processing && $0.id == id }!
             self.stalls[index].processing = false
             self.tableView.reloadRows(at: [ IndexPath(row: index, section: 0) ], with: .fade)
         }
 
-        StallPersistence.modify(newStall: newStall, onSuccess: onSuccess, onFailure: onFailure)
+        StallPersistence.modify(newStall: newStall, onFailure: onFailure)
     }
 
     func deleteStall(at index: Int) {
@@ -178,50 +138,13 @@ class StallListVC: UIViewController,
         //Update UI
         self.tableView.reloadRows(at: [ IndexPath(item: index, section: 0) ], with: .fade)
 
-        let onSuccess = {
-            let index = self.stalls.index { $0.name == name && $0.processing && $0.id == id }!
-            self.stalls.remove(at: index)
-            self.tableView.deleteRows(at: [ IndexPath(item: index, section: 0) ], with: .automatic)
-        }
-
         let onFailure = {
             let index = self.stalls.index { $0.name == name && $0.processing && $0.id == id }!
             self.stalls[index].processing = false
             self.tableView.reloadRows(at: [ IndexPath(item: index, section: 0) ], with: .automatic)
         }
 
-        StallPersistence.delete(id: id, onSuccess: onSuccess, onFailure: onFailure)
-    }
-
-    func hideUpdateIndicator() {
-
-        if stallUpdateStatusIndicator.frame.height == 0 && stallUpdateStatusIndicator.alpha == 0 {
-            return
-        }
-
-        let animation = {
-            self.stallUpdateStatusIndicator.frame.size.height = 0
-            self.stallUpdateStatusIndicator.alpha = 0
-            self.stallUpdateStatusIndicator.layoutIfNeeded()
-        }
-
-        UIView.animate(withDuration: 0.3, animations: animation, completion: { (_) in
-            self.stallUpdateStatusIndicator.isHidden = true
-        })
-    }
-
-    func showUpdateIndicator() {
-        stallUpdateStatusIndicator.isHidden = false
-
-        if stallUpdateStatusIndicator.frame.height == 35 && stallUpdateStatusIndicator.alpha == 1 {
-            return
-        }
-
-        UIView.animate(withDuration: 0.1) {
-            self.stallUpdateStatusIndicator.frame.size.height = 35
-            self.stallUpdateStatusIndicator.alpha = 1
-            self.stallUpdateStatusIndicator.layoutIfNeeded()
-        }
+        StallPersistence.delete(id: id, onFailure: onFailure)
     }
 
     func showEditStall(stallID: Int, oldName: String) {
@@ -243,24 +166,63 @@ class StallListVC: UIViewController,
     }
 
     //MARK: - StallUpdateDelegate
-    func onUpdateFinish() {
-        log.info("Local Stall database updated.")
-        self.stalls = StallPersistence
-                .getAllStalls()
-                .map { ($0.id, $0.name, false) }
-
+    func didReceiveBulkUpdate() {
+        self.stalls = StallPersistence.getAllStalls().map { (id: $0.id, name: $0.name, processing: false) }
         self.tableView.reloadData()
-        self.hideUpdateIndicator()
     }
 
-    func onUpdateFail() {
-        log.error("On Request Error called")
-        self.hideUpdateIndicator()
+    func stallIsCreated(stall: Stall) {
+        /*
+        Upon creation, addStall(stallName: String) appends a stall into the stall array.
+        If the stallIndex is not nil, it means the stall was created from this app.
+        */
+        if let stallIndex = self.stalls.index(where: { $0.name == stall.name && $0.processing && $0.id == nil }) {
+            //Turn off processing
+            self.stalls[stallIndex].processing = false
+            
+            //Assign the ID
+            self.stalls[stallIndex].id = stall.id
+
+            //Reload UI
+            let indexPath = IndexPath(item: stallIndex, section: 0)
+            self.tableView.reloadRows(at: [ indexPath ], with: .fade)
+            return
+        }
+
+        //If we're here, that means the stall was created somewhere else
+        let indexPath = IndexPath(item: self.stalls.endIndex, section: 0)
+        self.stalls.append((id: stall.id, name: stall.name, processing: false))
+        self.tableView.insertRows(at: [indexPath], with: .automatic)
     }
 
-    //MARK: - AuthenticationDelegate
-    func onAuthenticationSuccess() {
-        self.updateStallDatabase()
+    func stallIsModified(stall: Stall) {
+        /*
+        Upon modification, editStall(newName: String, id: Int, oldName: String)appends a stall
+        into the stall array. If the stallIndex is not nil, it means the stall was created from this app.
+        */
+        if let stallIndex = self.stalls.index(where: { $0.name == stall.name && $0.processing && $0.id == nil }) {
+            self.stalls[stallIndex].name = stall.name
+            self.stalls[stallIndex].processing = false
+
+            let indexPath = IndexPath(row: stallIndex, section: 0)
+            self.tableView.reloadRows(at: [ indexPath ], with: .fade)
+            return
+        }
+
+        //If we're here, it means the stall was modified somewhere else
+        let stallIndex = self.stalls.index { $0.id == stall.id }!
+        self.stalls[stallIndex] = (id: stall.id, name: stall.name, processing: false)
+
+        let indexPath = IndexPath(row: stallIndex, section: 0)
+        self.tableView.reloadRows(at: [ indexPath ], with: .fade)
+    }
+
+    func stallIsDeleted(id: Int) {
+        let stallIndex = self.stalls.index { $0.id == id }!
+        self.stalls.remove(at: stallIndex)
+
+        let indexPath = IndexPath(item: stallIndex, section: 0)
+        self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
     }
 
     //MARK: - UITableViewDelegate
@@ -325,8 +287,8 @@ class StallListVC: UIViewController,
 
     func buttonTitle(forEmptyDataSet scrollView: UIScrollView, for state: UIControlState) -> NSAttributedString? {
         return NSAttributedString(string: "Create stall", attributes: [
-            NSFontAttributeName : UIFont.systemFont(ofSize: 17),
-            NSForegroundColorAttributeName: self.view.tintColor
+                NSFontAttributeName : UIFont.systemFont(ofSize: 17),
+                NSForegroundColorAttributeName : self.view.tintColor
         ])
     }
 

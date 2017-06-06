@@ -8,6 +8,7 @@
 
 import UIKit
 import Moya
+import Starscream
 import SwiftKeychainWrapper
 import IQKeyboardManagerSwift
 import SwiftyBeaver
@@ -28,16 +29,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         //This keeps IRM in memory.
         self.internetReachabilityManager = InternetReachabilityManager.shared
-        
-        
-        if !AuthenticationPersistence.isSignedIn() {
-            log.info("User not signed in.")
-            Authentication.showSignInSheet()
-        } else {
-            log.verbose("Logging user in from keychain...")
-            IrisProvider.authenticateFromKeychain()
-        }
-
         
         IQKeyboardManager.sharedManager().enable = true
         return true

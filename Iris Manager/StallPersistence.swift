@@ -10,25 +10,163 @@ import Moya_ObjectMapper
 import ObjectMapper
 
 protocol StallUpdateDelegate {
-    func onUpdateFinish()
+    //Usually performed on bulk updates
+    func didReceiveBulkUpdate()
 
-    func onUpdateFail()
+    func stallIsCreated(stall: Stall)
+    func stallIsModified(stall: Stall)
+    func stallIsDeleted(id: Int)
+}
+
+class StallUpdateManager: WebSocketReceiver, WebSocketConnectionDelegate, AuthenticationDelegate {
+    static var delegate: StallUpdateDelegate?
+
+    //Manual HTTP Update
+    static func manualUpdate() {
+        guard let lastUpdated = ModelType.stalls.lastUpdated else {
+            initializeDatabase()
+            return
+        }
+
+        log.verbose("Stalls last updated \(lastUpdated), fetching updates...")
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: onUpdateRequestSuccess)
+        requestCreator.request(for: .getStallUpdates(lastUpdate: lastUpdated))
+    }
+
+    fileprivate static func renewModelUpdateDate() {
+        let dateNow = Date()
+        log.verbose("Renewing Last Update for Stall...")
+        ModelType.stalls.setLastUpdated(dateNow)
+    }
+
+    static func onUpdateRequestSuccess(response: Response) {
+        guard let responseDict = JSONDeserializer.toDictionary(json: response.data) else {
+            let response = String(data: response.data, encoding: .utf8) ?? "No response"
+            log.error("Response: \(response)")
+
+            return
+        }
+
+        guard let newDict = responseDict["new"] as? [[String : Any]],
+              let modifiedDict = responseDict["modified"] as? [[String : Any]],
+              let deletedDict = responseDict["deleted"] as? [Int] else {
+            log.error("An error occurred casting response dictionary")
+            log.error("Response Dictionary: \(responseDict)")
+
+            return
+        }
+
+        guard let new = StallPersistence.Deserializer.toStallArray(dict: newDict),
+              let modified = StallPersistence.Deserializer.toStallArray(dict: modifiedDict) else {
+            log.error("An error occurred mapping dictionaries")
+
+            return
+        }
+        
+        self.renewModelUpdateDate()
+
+        //Then update database
+        StallPersistence.LocalDatabase.save(stalls: new, isUpdate: false)
+        StallPersistence.LocalDatabase.save(stalls: modified, isUpdate: true)
+
+        for id in deletedDict {
+            guard let stall = StallPersistence.LocalDatabase.getStall(id: id) else {
+                log.error("Could not delete stall \(id): Could not find matching ID in database")
+
+                //If could not find stall, stall was probably deleted anyway
+                continue
+            }
+
+            StallPersistence.LocalDatabase.delete(id: stall.id)
+        }
+
+        self.delegate?.didReceiveBulkUpdate()
+    }
+
+    //No history of updates? Fetch everything.
+    fileprivate static func initializeDatabase() {
+
+        let onRequestSuccess: (Response) -> Void = { response in
+
+            guard let stalls = StallPersistence.Deserializer.toStallArray(response: response) else {
+                return
+            }
+
+            StallPersistence.LocalDatabase.save(stalls: stalls, isUpdate: false)
+            self.renewModelUpdateDate()
+            log.info("Local database initialization complete")
+            self.delegate?.didReceiveBulkUpdate()
+        }
+
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: onRequestSuccess)
+
+        requestCreator.request(for: .getStalls)
+    }
+
+    //MARK: - WebSocket update handler
+    fileprivate static func stallIsCreated(dict: [String: Any]) {
+        guard let stall = StallPersistence.Deserializer.toStall(dict: dict) else {
+            log.error("Unable to deserialize WebSocket Stall: \(dict)")
+            return
+        }
+
+        StallPersistence.LocalDatabase.save(stall: stall, isUpdate: false)
+        self.delegate?.stallIsCreated(stall: stall)
+    }
+
+    fileprivate static func stallIsModified(dict: [String: Any]) {
+        guard let stall = StallPersistence.Deserializer.toStall(dict: dict) else {
+            log.error("Unable to deserialize WebSocket Stall: \(dict)")
+            return
+        }
+
+        StallPersistence.LocalDatabase.save(stall: stall, isUpdate: true)
+        self.delegate?.stallIsModified(stall: stall)
+    }
+
+    fileprivate static func stallIsDeleted(id: Int) {
+        StallPersistence.LocalDatabase.delete(id: id)
+        self.delegate?.stallIsDeleted(id: id)
+    }
+
+    //MARK: - WebSocketReceiver
+    static func handle(update: WebSocketUpdate) {
+        self.renewModelUpdateDate()
+
+        switch update {
+            case .creation(let dict):
+                stallIsCreated(dict: dict)
+            case .modification(let dict):
+                stallIsModified(dict: dict)
+            case .deletion(let id):
+                stallIsDeleted(id: id)
+        }
+    }
+
+    //MARK: - WebSocketConnectionDelegate
+    static func websocketDidConnect() {
+        //What did we miss on?
+        self.manualUpdate()
+    }
+
+    static func websocketDidDisconnect() {
+        //Removed update, we probably won't need it
+        //What can we put in didDisconnect?
+
+    }
+
+    //MARK: - AuthenticationDelegate
+    static func onAuthenticationSuccess() {
+        self.manualUpdate()
+    }
 }
 
 class StallPersistence {
 
-    static func create(stallName: String, onSuccess: @escaping (Stall) -> Void, onFailure: @escaping () -> Void) {
+    static func create(stallName: String, onFailure: @escaping () -> Void) {
 
-        let onStallCreationSuccess: (Response) -> Void = { response in
-
-            guard let stall = Deserializer.toStall(response: response) else {
-                onFailure()
-                return
-            }
-
+        let onStallCreationSuccess: (Response) -> Void = { _ in
             log.verbose("Create stall success")
-
-            onSuccess(stall)
         }
 
         let requestCreator = IrisProvider.RequestCreator(onSuccess: onStallCreationSuccess,
@@ -37,31 +175,21 @@ class StallPersistence {
         requestCreator.request(for: .createStall(stallName: stallName))
     }
 
-    static func modify(newStall new: Stall, onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
+    static func modify(newStall new: Stall, onFailure: @escaping () -> Void) {
         
         let onResponse: (Response) -> Void = { _ in
-            
             log.verbose("Edit stall success")
-            
-            let oldStall = LocalDatabase.getStall(id: new.id)!
-            LocalDatabase.modify(oldStall: oldStall, newStall: new)
-            
-            onSuccess()
         }
-        
 
         let requestCreator = IrisProvider.RequestCreator(onSuccess: onResponse, onGeneralFailure: onFailure)
 
         requestCreator.request(for: .modifyStall(stall: new))
     }
 
-    static func delete(id: Int, onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
+    static func delete(id: Int, onFailure: @escaping () -> Void) {
 
         let onSuccess: (Response) -> Void = { _ in
-            LocalDatabase.delete(id: id)
-
-            //TODO: Update Local Database
-            onSuccess()
+            log.verbose("Delete stall success")
         }
 
         let requestCreator = IrisProvider.RequestCreator(onSuccess: onSuccess, onGeneralFailure: onFailure)
@@ -69,144 +197,8 @@ class StallPersistence {
         requestCreator.request(for: .deleteStall(id: id))
     }
 
-    static func updateLocalDatabase(delegate: StallUpdateDelegate) {
-        guard !UpdateManager.isRunning else {
-            log.warning("Attempt to run stall update while update still running")
-            delegate.onUpdateFail()
-            return
-        }
-
-        log.info("Retrieving Stall Updates...")
-        UpdateManager(delegate: delegate).update()
-    }
-
     static func getAllStalls() -> [Stall] {
         return LocalDatabase.getStalls()
-    }
-
-
-
-    //MARK: - Stall Update Structure
-
-    fileprivate class UpdateManager {
-
-        var delegate: StallUpdateDelegate
-        fileprivate static var isRunning: Bool = false
-
-        init(delegate: StallUpdateDelegate) {
-            self.delegate = delegate
-        }
-
-        func onUpdateFail() {
-            UpdateManager.isRunning = false
-            self.delegate.onUpdateFail()
-        }
-
-        func onUpdateFinish() {
-            UpdateManager.isRunning = false
-            self.delegate.onUpdateFinish()
-        }
-
-        func update() {
-            //TODO: Create user settings signifying last update
-            UpdateManager.isRunning = true
-
-            guard let lastUpdated = ModelType.stalls.lastUpdated else {
-                log.verbose("No last update found. Initializing database...")
-                self.initializeDatabase()
-                return
-            }
-            
-            log.verbose("Last updated \(lastUpdated), fetching updates...")
-
-            self.requestUpdates(from: lastUpdated)
-        }
-
-        //No history of updates? Fetch everything.
-        func initializeDatabase() {
-
-            let onRequestSuccess: (Response) -> Void = { response in
-                
-                guard let stalls = Deserializer.toStallArray(response: response) else {
-                    self.onUpdateFail()
-                    return
-                }
-                
-                LocalDatabase.save(stalls: stalls, isUpdate: false)
-                UpdateManager.isRunning = false
-                
-                let dateNow = Date()
-                log.info("Updating last updated for Stall")
-                ModelType.stalls.setLastUpdated(dateNow)
-                
-                log.info("Local database initialization complete")
-
-                self.onUpdateFinish()
-            }
-
-            let requestCreator = IrisProvider.RequestCreator(onSuccess: onRequestSuccess,
-                                                             onGeneralFailure: self.onUpdateFail)
-
-            requestCreator.request(for: .getStalls)
-        }
-
-        func requestUpdates(from date: Date) {
-            let requestCreator = IrisProvider.RequestCreator(onSuccess: onUpdateRequestSuccess, onGeneralFailure: onUpdateFail)
-            requestCreator.request(for: .getStallUpdates(lastUpdate: date))
-        }
-
-        func onUpdateRequestSuccess(response: Response) {
-            guard let responseDict = JSONDeserializer.toDictionary(json: response.data) else {
-                let response = String(data: response.data, encoding: .utf8) ?? "No response"
-                log.error("Response: \(response)")
-
-                self.onUpdateFail()
-                return
-            }
-            
-            guard let newDict = responseDict["new"] as? [[String : Any]],
-                  let modifiedDict = responseDict["modified"] as? [[String : Any]],
-                  let deletedDict = responseDict["deleted"] as? [Int] else {
-                log.error("An error occurred casting response dictionary")
-                log.error("Response Dictionary: \(responseDict)")
-
-                self.onUpdateFail()
-                return
-            }
-            
-            guard let new = Deserializer.toStallArray(dict: newDict),
-                  let modified = Deserializer.toStallArray(dict: modifiedDict) else {
-                log.error("An error occurred mapping dictionaries")
-
-                self.onUpdateFail()
-                return
-            }
-
-
-            //Update time first
-            let dateNow = Date() //Date always initializes with current date
-            log.info("Updating last updated for Stalls")
-            ModelType.stalls.setLastUpdated(dateNow)
-            
-            //Then update database
-            LocalDatabase.save(stalls: new, isUpdate: false)
-            LocalDatabase.save(stalls: modified, isUpdate: true)
-
-            for id in deletedDict {
-                guard let stall = LocalDatabase.getStall(id: id) else {
-                    log.error("Could not find stall of id \(id)")
-
-                    //If could not find stall, stall was probably deleted anyway
-                    continue
-                }
-
-                LocalDatabase.delete(id: stall.id)
-            }
-
-            self.onUpdateFinish()
-        }
-
-
     }
 
     //MARK: - Deserializer

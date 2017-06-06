@@ -16,4 +16,5 @@ target 'Iris Manager' do
   pod 'SwiftyBeaver'
   pod 'LKAlertController'
   pod 'DZNEmptyDataSet'
+  pod 'Starscream'
 end

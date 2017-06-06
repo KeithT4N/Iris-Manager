@@ -2,6 +2,8 @@
   <dictionary name="keith">
     <words>
       <w>deserializing</w>
+      <w>tableview</w>
+      <w>websocket</w>
     </words>
   </dictionary>
 </component>

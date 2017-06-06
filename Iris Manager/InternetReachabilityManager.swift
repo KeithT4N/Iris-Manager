@@ -10,9 +10,15 @@ import Alamofire
 import SwiftMessages
 import LKAlertController
 
-protocol InternetReachabilityManagerDelegate {
-    func onInternetDisconnect()
-    func onInternetConnect()
+protocol InternetReachabilityDelegate {
+    static func onInternetDisconnect()
+    static func onInternetConnect()
+}
+
+extension InternetReachabilityDelegate {
+    static func onInternetDisconnect() {
+        //This is an optional function
+    }
 }
 
 //This class has to be a singleton to remain in memory.
@@ -29,33 +35,45 @@ class InternetReachabilityManager {
     fileprivate static var singleton = InternetReachabilityManager()
     fileprivate var reachabilityManager: NetworkReachabilityManager
     
-    fileprivate var delegates: [InternetReachabilityManagerDelegate] = []
+    fileprivate static var delegates: [InternetReachabilityDelegate.Type] = []
 
     fileprivate init() {
 
         //ReachabilityManager REQUIRES that https:// is NOT included in the URL.
-        reachabilityManager = NetworkReachabilityManager(host: BaseURL.shared.domain)!
+        reachabilityManager = NetworkReachabilityManager(host: BaseURL.domain)!
 
         reachabilityManager.listener = { status in
             switch status {
                 case .notReachable, .unknown:
                     log.error("Could not reach the internet")
-                    self.onInternetDisconnect()
+                    InternetReachabilityManager.onInternetDisconnect()
 
                 case .reachable:
                     log.verbose("Internet connection found")
-                    self.onInternetConnect()
+                    InternetReachabilityManager.onInternetConnect()
             }
         }
 
         reachabilityManager.startListening()
     }
     
-    func add(delegate: InternetReachabilityManagerDelegate) {
+    static func add(delegate: InternetReachabilityDelegate.Type) {
         self.delegates.append(delegate)
     }
 
-    func onInternetConnect() {
+    fileprivate static func callDelegatesConnection() {
+        delegates.forEach { delegate in
+            delegate.onInternetConnect()
+        }
+    }
+
+    fileprivate static func callDelegatesDisconnection() {
+        delegates.forEach { delegate in
+            delegate.onInternetDisconnect()
+        }
+    }
+
+    fileprivate static func showInternetIsConnected() {
         SwiftMessages.hide()
 
         let connectionMessageView = MessageView.viewFromNib(layout: .StatusLine)
@@ -72,9 +90,26 @@ class InternetReachabilityManager {
         SwiftMessages.hide()
         SwiftMessages.show(config: connectionMessageConfig,
                            view: connectionMessageView)
+
+        WebSocketManager.connectSocket()
     }
 
-    func onInternetDisconnect() {
+    static func onInternetConnect() {
+        showInternetIsConnected()
+
+        if !AuthenticationPersistence.isSignedIn {
+            log.info("User not signed in.")
+            Authentication.showSignInSheet()
+        } else {
+            log.verbose("Logging user in from keychain...")
+            IrisProvider.authenticateFromKeychain()
+            WebSocketManager.connectSocket()
+        }
+
+        self.callDelegatesConnection()
+    }
+
+    static func onInternetDisconnect() {
         let initialMessageView = MessageView.viewFromNib(layout: .CardView)
         initialMessageView.configureTheme(.error)
         initialMessageView.configureContent(title: "Connection Error", body: "No internet connection found")
@@ -106,8 +141,9 @@ class InternetReachabilityManager {
         }
 
         SwiftMessages.hide()
-
         SwiftMessages.show(config: initialMessageConfig, view: initialMessageView)
+
+        self.callDelegatesDisconnection()
     }
     
     static fileprivate var actionsOnRetry: [() -> Void] = []

@@ -6,12 +6,13 @@
 //  Copyright © 2017 Axis. All rights reserved.
 //
 
+import Foundation
+
 class BaseURL {
-    let domain = "3e8d089c.ngrok.io"
-    var completeAddress: String {
+    static let websocketURL = "wss://\(domain)/"
+    static let domain = "adea1940.ngrok.io"
+    static var completeAddress: String {
         return "https://" + domain + "/api"
     }
     
-    public static var shared = BaseURL()
-    private init() {}
 }

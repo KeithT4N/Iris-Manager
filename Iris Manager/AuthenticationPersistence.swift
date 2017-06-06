@@ -19,12 +19,13 @@ class AuthenticationPersistence {
             KeychainWrapper.standard.set(newValue, forKey: "token")
         }
     }
+
+    static var isSignedIn: Bool {
+        return KeychainWrapper.standard.string(forKey: "username") != nil
+    }
     
     static func removeToken() {
         KeychainWrapper.standard.removeObject(forKey: "token")
     }
 
-    static func isSignedIn() -> Bool {
-        return KeychainWrapper.standard.string(forKey: "username") != nil
-    }
 }

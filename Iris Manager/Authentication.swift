@@ -9,41 +9,46 @@
 import Moya
 
 //Protocol must be class for instance to be compared on Authentication.add(delegate:)
-protocol AuthenticationDelegate: class {
-    func onAuthenticationSuccess()
 
-    func onAuthenticationFailure()
+protocol AuthenticationDelegate: class {
+    static func onAuthenticationSuccess()
+
+    //FIXME: Make static
+    static func onAuthenticationFailure()
 }
 
 extension AuthenticationDelegate {
-    func onAuthenticationFailure() {
+    static func onAuthenticationFailure() {
         //Optional function
     }
 }
 
 class Authentication {
 
-    static fileprivate var delegates: [AuthenticationDelegate] = []
+    static fileprivate var delegates: [AuthenticationDelegate.Type] = [
+        StallUpdateManager.self
+    ]
 
     static func showSignInSheet() {
         let appDelegate = UIKit.UIApplication.shared.delegate!
 
-        if let tabBarController = appDelegate.window??.rootViewController as? UITabBarController {
-            let storyboard = UIStoryboard.init(name: "Main", bundle: nil)
-            let signInVC   = storyboard.instantiateViewController(withIdentifier: "SignInVC") as! SignInVC
-
-            guard !signInVC.isBeingPresented else {
-                log.warning("Attempt to present sign in sheet when it is already showing")
-                return
-            }
-
-            signInVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-
-            tabBarController.present(signInVC, animated: true, completion: nil)
+        guard let tabBarController = appDelegate.window??.rootViewController as? UITabBarController else {
+            return
         }
+
+        guard tabBarController.presentedViewController == nil else {
+            log.warning("Attempt to present sign in sheet when it is already showing")
+            return
+        }
+
+        let storyboard = UIStoryboard.init(name: "Main", bundle: nil)
+        let signInVC   = storyboard.instantiateViewController(withIdentifier: "SignInVC") as! SignInVC
+        signInVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+        tabBarController.present(signInVC, animated: true, completion: nil)
+
     }
 
-    static func add(delegate: AuthenticationDelegate) {
+    static func add(delegate: AuthenticationDelegate.Type) {
         if self.delegates.contains(where: { $0 === delegate }) {
             //If instance already in array, do not append22
             return
