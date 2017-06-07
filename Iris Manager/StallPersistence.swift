@@ -14,7 +14,9 @@ protocol StallUpdateDelegate {
     func didReceiveBulkUpdate()
 
     func stallIsCreated(stall: Stall)
+
     func stallIsModified(stall: Stall)
+
     func stallIsDeleted(id: Int)
 }
 
@@ -22,14 +24,24 @@ class StallUpdateManager: WebSocketReceiver, WebSocketConnectionDelegate, Authen
     static var delegate: StallUpdateDelegate?
 
     //Manual HTTP Update
-    static func manualUpdate() {
+    //TODO: Finish completion handler
+    static func manualUpdate(completion: ((UIBackgroundFetchResult) -> Void)? = nil) {
         guard let lastUpdated = ModelType.stalls.lastUpdated else {
-            initializeDatabase()
+            initializeDatabase(completion: completion)
             return
         }
 
+        let onRequestSuccess: (Response) -> Void = { response in
+            onUpdateRequestSuccess(response: response, completion: completion)
+        }
+
+        let onRequestFailure: () -> Void = {
+            completion?(.failed)
+        }
+
         log.verbose("Stalls last updated \(lastUpdated), fetching updates...")
-        let requestCreator = IrisProvider.RequestCreator(onSuccess: onUpdateRequestSuccess)
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: onRequestSuccess,
+                                                         onGeneralFailure: onRequestFailure)
         requestCreator.request(for: .getStallUpdates(lastUpdate: lastUpdated))
     }
 
@@ -39,11 +51,13 @@ class StallUpdateManager: WebSocketReceiver, WebSocketConnectionDelegate, Authen
         ModelType.stalls.setLastUpdated(dateNow)
     }
 
-    static func onUpdateRequestSuccess(response: Response) {
+
+    fileprivate static func onUpdateRequestSuccess(response: Response,
+                                                   completion: ((UIBackgroundFetchResult) -> Void)? = nil) {
         guard let responseDict = JSONDeserializer.toDictionary(json: response.data) else {
             let response = String(data: response.data, encoding: .utf8) ?? "No response"
             log.error("Response: \(response)")
-
+            completion?(.failed)
             return
         }
 
@@ -52,22 +66,22 @@ class StallUpdateManager: WebSocketReceiver, WebSocketConnectionDelegate, Authen
               let deletedDict = responseDict["deleted"] as? [Int] else {
             log.error("An error occurred casting response dictionary")
             log.error("Response Dictionary: \(responseDict)")
-
+            completion?(.failed)
             return
         }
 
         guard let new = StallPersistence.Deserializer.toStallArray(dict: newDict),
               let modified = StallPersistence.Deserializer.toStallArray(dict: modifiedDict) else {
             log.error("An error occurred mapping dictionaries")
-
+            completion?(.failed)
             return
         }
-        
+
         self.renewModelUpdateDate()
 
         //Then update database
-        StallPersistence.LocalDatabase.save(stalls: new, isUpdate: false)
-        StallPersistence.LocalDatabase.save(stalls: modified, isUpdate: true)
+        let updates = new + modified
+        StallPersistence.LocalDatabase.save(stalls: updates)
 
         for id in deletedDict {
             guard let stall = StallPersistence.LocalDatabase.getStall(id: id) else {
@@ -81,46 +95,55 @@ class StallUpdateManager: WebSocketReceiver, WebSocketConnectionDelegate, Authen
         }
 
         self.delegate?.didReceiveBulkUpdate()
+        let hasNewData = !new.isEmpty && !modified.isEmpty
+        completion?(hasNewData ? .newData : .noData)
     }
 
     //No history of updates? Fetch everything.
-    fileprivate static func initializeDatabase() {
+    fileprivate static func initializeDatabase(completion: ((UIBackgroundFetchResult) -> Void)? = nil) {
 
         let onRequestSuccess: (Response) -> Void = { response in
-
             guard let stalls = StallPersistence.Deserializer.toStallArray(response: response) else {
                 return
             }
 
-            StallPersistence.LocalDatabase.save(stalls: stalls, isUpdate: false)
+            StallPersistence.LocalDatabase.save(stalls: stalls)
             self.renewModelUpdateDate()
             log.info("Local database initialization complete")
             self.delegate?.didReceiveBulkUpdate()
+
+            let hasNewStalls = !stalls.isEmpty
+            completion?(hasNewStalls ? .newData : .noData)
         }
 
-        let requestCreator = IrisProvider.RequestCreator(onSuccess: onRequestSuccess)
+        let onRequestFailure: () -> Void = {
+            completion?(.failed)
+        }
+
+        let requestCreator = IrisProvider.RequestCreator(onSuccess: onRequestSuccess,
+                                                         onGeneralFailure: onRequestFailure)
 
         requestCreator.request(for: .getStalls)
     }
 
     //MARK: - WebSocket update handler
-    fileprivate static func stallIsCreated(dict: [String: Any]) {
+    fileprivate static func stallIsCreated(dict: [String : Any]) {
         guard let stall = StallPersistence.Deserializer.toStall(dict: dict) else {
             log.error("Unable to deserialize WebSocket Stall: \(dict)")
             return
         }
 
-        StallPersistence.LocalDatabase.save(stall: stall, isUpdate: false)
+        StallPersistence.LocalDatabase.save(stall: stall)
         self.delegate?.stallIsCreated(stall: stall)
     }
 
-    fileprivate static func stallIsModified(dict: [String: Any]) {
+    fileprivate static func stallIsModified(dict: [String : Any]) {
         guard let stall = StallPersistence.Deserializer.toStall(dict: dict) else {
             log.error("Unable to deserialize WebSocket Stall: \(dict)")
             return
         }
 
-        StallPersistence.LocalDatabase.save(stall: stall, isUpdate: true)
+        StallPersistence.LocalDatabase.save(stall: stall)
         self.delegate?.stallIsModified(stall: stall)
     }
 
@@ -176,7 +199,7 @@ class StallPersistence {
     }
 
     static func modify(newStall new: Stall, onFailure: @escaping () -> Void) {
-        
+
         let onResponse: (Response) -> Void = { _ in
             log.verbose("Edit stall success")
         }
@@ -277,17 +300,16 @@ class StallPersistence {
             return self.realm.objects(Stall.self).filter("id == \(id)").first
         }
 
-        static func save(stall: Stall, isUpdate: Bool) {
+        static func save(stall: Stall) {
+            let exists = getStall(id: stall.id) != nil //The stall exists
             try! self.realm.write {
-                self.realm.add(stall, update: isUpdate)
+                self.realm.add(stall, update: exists)
             }
         }
 
-        static func save(stalls: [Stall], isUpdate: Bool) {
-            try! self.realm.write {
-                for stall in stalls {
-                    self.realm.add(stall, update: isUpdate)
-                }
+        static func save(stalls: [Stall]) {
+            stalls.forEach { stall in
+                self.save(stall: stall)
             }
         }
 

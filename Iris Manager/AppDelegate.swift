@@ -30,6 +30,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //This keeps IRM in memory.
         self.internetReachabilityManager = InternetReachabilityManager.shared
         
+        UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplicationBackgroundFetchIntervalMinimum)
+        
         IQKeyboardManager.sharedManager().enable = true
         return true
     }
@@ -56,6 +58,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    }
+    
+    func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        StallUpdateManager.manualUpdate(completion: completionHandler)
     }
 
 

@@ -122,6 +122,7 @@ class StallListVC: UIViewController,
 
         let onFailure = {
             let index = self.stalls.index { $0.name == newName && $0.processing && $0.id == id }!
+            self.stalls[index].name = oldName
             self.stalls[index].processing = false
             self.tableView.reloadRows(at: [ IndexPath(row: index, section: 0) ], with: .fade)
         }

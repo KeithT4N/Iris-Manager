@@ -10,9 +10,8 @@ import Foundation
 
 class BaseURL {
     static let websocketURL = "wss://\(domain)/"
-    static let domain = "adea1940.ngrok.io"
+    static let domain = "7427b746.ngrok.io"
     static var completeAddress: String {
         return "https://" + domain + "/api"
     }
-    
 }
