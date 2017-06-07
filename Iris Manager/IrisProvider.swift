@@ -115,10 +115,11 @@ class IrisProvider {
                 case 200...299:
                     onSuccess(response)
 
-                case 401:
-                    log.error("Unable to do action \(action) - 401 Unauthorized")
+                case 401, 403:
+                    log.error("Unable to do action \(action) - \(response.statusCode)")
                     log.error("Response: \(String(data: response.data, encoding: .utf8) ?? "")")
                     executeOrGeneralFailure(self.onUnauthorized)
+                    AuthenticationPersistence.removeToken() //We shouldn't keep the bad token
                     Authentication.showSignInSheet()
 
                 case 404:
