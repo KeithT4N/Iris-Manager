@@ -114,11 +114,12 @@ class InternetReachabilityManager {
         initialMessageView.configureTheme(.error)
         initialMessageView.configureContent(title: "Connection Error", body: "No internet connection found")
         initialMessageView.configureDropShadow()
+        initialMessageView.button?.isHidden = true
 
         var initialMessageConfig = SwiftMessages.Config()
         initialMessageConfig.presentationStyle = .top
         initialMessageConfig.presentationContext = .window(windowLevel: UIWindowLevelNormal)
-        initialMessageConfig.duration = .seconds(seconds: 5)
+        initialMessageConfig.duration = .seconds(seconds: 3)
         initialMessageConfig.dimMode = .none
         initialMessageConfig.interactiveHide = false
 

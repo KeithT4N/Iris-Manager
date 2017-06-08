@@ -35,7 +35,15 @@ class StallListVC: UITableViewController,
     }
 
     //Search query results
-    var filteredStalls: [(id: Int?, name: String, processing: Bool)] = []
+    var filteredStalls: [(id: Int?, name: String, processing: Bool)] {
+        guard let searchText = searchBar.text else {
+            return stalls //No filter means everything
+        }
+        
+        return stalls.filter { stall in
+            return stall.name.lowercased().contains(searchText.lowercased())
+        }
+    }
 
     //All stalls
     var stalls: [(id: Int?, name: String, processing: Bool)] = [] {
@@ -230,10 +238,9 @@ class StallListVC: UITableViewController,
             //Assign the ID
             self.stalls[stallIndex].id = stall.id
 
-            //Reload UI
-
-            if !isSearching {
-                let indexPath = IndexPath(item: stallIndex, section: 0)
+            //Show creation if in display array
+            if let displayIndex = self.displayArray.index(where: { $0.name == stall.name && $0.processing }) {
+                let indexPath = IndexPath(item: displayIndex, section: 0)
                 self.tableView.reloadRows(at: [ indexPath ], with: .fade)
             }
             return
@@ -250,6 +257,14 @@ class StallListVC: UITableViewController,
 
     func stallIsModified(stall: Stall) {
 
+        //Find index on displayArray and reload on that index
+        let updateIfShowing = {
+            if let displayIndex = self.displayArray.index(where: { $0.id == stall.id }) {
+                let indexPath = IndexPath(row: displayIndex, section: 0)
+                self.tableView.reloadRows(at: [ indexPath ], with: .fade)
+            }
+        }
+
         /*
         Upon modification, editStall(newName: String, id: Int, oldName: String)appends a stall
         into the stall array. If the stallIndex is not nil, it means the stall was created from this app.
@@ -258,35 +273,31 @@ class StallListVC: UITableViewController,
             self.stalls[stallIndex].name = stall.name
             self.stalls[stallIndex].processing = false
 
-            if !isSearching {
-                let indexPath = IndexPath(row: stallIndex, section: 0)
-                self.tableView.reloadRows(at: [ indexPath ], with: .fade)
-            }
+            updateIfShowing()
             return
         }
 
         //If we're here, it means the stall was modified somewhere else
         let stallIndex = self.stalls.index { $0.id == stall.id }!
         self.stalls[stallIndex] = (id: stall.id, name: stall.name, processing: false)
-
-        if !isSearching {
-            let indexPath = IndexPath(row: stallIndex, section: 0)
-            self.tableView.reloadRows(at: [ indexPath ], with: .fade)
-        }
+        
+        
+        //If displaying, update.
+        updateIfShowing()
     }
 
     func stallIsDeleted(id: Int) {
         let index = self.stalls.index { $0.id == id }!
         self.stalls.remove(at: index)
 
-        guard let displayIndex = displayArray.index(where: { $0.id == id }) else {
-            //Presumably in search, and deleted stall is not in results
-            return
+        //If showing, remove.
+        if let displayIndex = displayArray.index(where: { $0.id == id })  {
+            let indexPath = IndexPath(item: displayIndex, section: 0)
+            self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
         }
 
-        let indexPath = IndexPath(item: displayIndex, section: 0)
-        self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
     }
+    
 
     //MARK: - UITableViewDelegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -299,16 +310,23 @@ class StallListVC: UITableViewController,
         let delete = UITableViewRowAction(style: .destructive, title: "Delete") { action, index in
             let stall = self.displayArray[index.row]
             self.deleteStall(id: stall.id!)
+
+            //Resign UITableViewRowAction
+            tableView.setEditing(false, animated: true)
         }
 
-        let edit = UITableViewRowAction(style: .normal, title: "Edit") { action, index in
+        let rename = UITableViewRowAction(style: .normal, title: "Rename") { action, index in
             let stall = self.displayArray[index.row]
             self.showEditStall(id: stall.id!, oldName: stall.name)
+
+            //Resign UITableViewRowAction
+            tableView.setEditing(false, animated: true)
         }
 
-        edit.backgroundColor = .orange
+        //Green: UIColor(red:0.32, green:0.85, blue:0.42, alpha:1.0)
+        rename.backgroundColor = .lightGray
 
-        return [ delete, edit ]
+        return [ delete, rename ]
     }
 
     //MARK: - UITableViewDataSource
@@ -340,17 +358,13 @@ class StallListVC: UITableViewController,
 
     //MARK: - UISearchBarDelegate
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        filteredStalls = stalls.filter { stall in
-            return stall.name.lowercased().contains(searchText.lowercased())
-        }
-
         tableView.reloadData()
     }
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
-    
+
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searchBar.text = ""
         searchBar.resignFirstResponder()
