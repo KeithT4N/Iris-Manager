@@ -206,12 +206,12 @@ class StallListVC: UITableViewController,
         textField.text = oldName
         textField.placeholder = "Stall name"
 
-        Alert(title: "Edit Stall", message: "Enter Stall Name")
+        Alert(title: "Rename Stall", message: "Enter Stall Name")
                 .addTextField(&textField)
                 .addAction("Cancel", style: .cancel) { _ in
                     textField.text = ""
                 }
-                .addAction("Edit", style: .default) { _ in
+                .addAction("Rename", style: .default) { _ in
                     let stallName = textField.text ?? ""
                     self.editStall(newName: stallName, id: id, oldName: oldName)
                     textField.text = ""

@@ -14,8 +14,7 @@ class Stall: Object, Mappable {
     dynamic var name:        String = ""
 
     let products = List<Product>()
-    
-    
+
     override static func primaryKey() -> String? {
         return "id"
     }
