@@ -18,35 +18,32 @@ class StallListVC: UITableViewController,
                    DZNEmptyDataSetSource,
                    DZNEmptyDataSetDelegate {
 
-    @IBOutlet weak var searchBar:    UISearchBar!
-
     //Computed property that determines if searchbar is active
-    fileprivate var    isSearching:  Bool {
+    private var isSearching:  Bool {
         guard let searchText = searchBar.text else {
             return false
         }
 
         return !searchText.isEmpty
     }
-
     //Computed property. This is always what's on display on the TableView.
-    fileprivate var    displayArray: [(id: Int?, name: String, processing: Bool)] {
+    private var displayArray: [(id: Int?, name: String, processing: Bool)] {
         return isSearching ? filteredStalls : stalls
     }
 
     //Search query results
-    var filteredStalls: [(id: Int?, name: String, processing: Bool)] {
+    private var filteredStalls: [(id: Int?, name: String, processing: Bool)] {
         guard let searchText = searchBar.text else {
             return stalls //No filter means everything
         }
-        
+
         return stalls.filter { stall in
             return stall.name.lowercased().contains(searchText.lowercased())
         }
     }
 
     //All stalls
-    var stalls: [(id: Int?, name: String, processing: Bool)] = [] {
+    private var stalls: [(id: Int?, name: String, processing: Bool)] = [] {
         didSet {
 
             if self.stalls.isEmpty {
@@ -73,6 +70,8 @@ class StallListVC: UITableViewController,
             }
         }
     }
+
+    @IBOutlet weak var searchBar: UISearchBar!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -232,14 +231,17 @@ class StallListVC: UITableViewController,
         If the stallIndex is not nil, it means the stall was created from this app.
         */
         if let stallIndex = self.stalls.index(where: { $0.name == stall.name && $0.processing && $0.id == nil }) {
+            //Get displayIndex before modifying the item
+            let displayIndex = self.displayArray.index(where: { $0.name == stall.name && $0.processing })
+
             //Turn off processing
             self.stalls[stallIndex].processing = false
 
             //Assign the ID
             self.stalls[stallIndex].id = stall.id
 
-            //Show creation if in display array
-            if let displayIndex = self.displayArray.index(where: { $0.name == stall.name && $0.processing }) {
+            //Then reload at displayIndex if not null
+            if let displayIndex = displayIndex  {
                 let indexPath = IndexPath(item: displayIndex, section: 0)
                 self.tableView.reloadRows(at: [ indexPath ], with: .fade)
             }
@@ -256,7 +258,6 @@ class StallListVC: UITableViewController,
     }
 
     func stallIsModified(stall: Stall) {
-
         //Find index on displayArray and reload on that index
         let updateIfShowing = {
             if let displayIndex = self.displayArray.index(where: { $0.id == stall.id }) {
@@ -280,24 +281,25 @@ class StallListVC: UITableViewController,
         //If we're here, it means the stall was modified somewhere else
         let stallIndex = self.stalls.index { $0.id == stall.id }!
         self.stalls[stallIndex] = (id: stall.id, name: stall.name, processing: false)
-        
-        
+
         //If displaying, update.
         updateIfShowing()
     }
 
     func stallIsDeleted(id: Int) {
         let index = self.stalls.index { $0.id == id }!
+
+        //Get index before removal - it's a computed property.
+        let displayIndex = displayArray.index(where: { $0.id == id })
         self.stalls.remove(at: index)
 
         //If showing, remove.
-        if let displayIndex = displayArray.index(where: { $0.id == id })  {
+        if let displayIndex = displayIndex {
             let indexPath = IndexPath(item: displayIndex, section: 0)
             self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
         }
-
     }
-    
+
 
     //MARK: - UITableViewDelegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
